@@ -44,9 +44,10 @@ model User {
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
 
-  createdTickets     Ticket[]        @relation("CreatedTickets")
-  assignedPpdTickets Ticket[]        @relation("AssignedPpdTickets")
-  ticketHistories    TicketHistory[]
+  createdTickets      Ticket[]        @relation("CreatedTickets")
+  assignedPpdTickets1 Ticket[]        @relation("AssignedPpdTickets1")
+  assignedPpdTickets2 Ticket[]        @relation("AssignedPpdTickets2")
+  ticketHistories     TicketHistory[]
 
   @@map("users")
 }
@@ -61,14 +62,16 @@ model Ticket {
   isLs                   Boolean      @default(false) @map("is_ls")
   currentStep            Int          @default(1) @map("current_step")
   status                 TicketStatus @default(pending)
-  assignedPpdUserId      String?      @map("assigned_ppd_user_id") // Assigned PPD user for step 12
+  assignedPpdUserId1     String?      @map("assigned_ppd_user_id_1") // First assigned PPD user for step 12
+  assignedPpdUserId2     String?      @map("assigned_ppd_user_id_2") // Second assigned PPD user for step 12
   createdById            String       @map("created_by_id")
   createdAt              DateTime     @default(now()) @map("created_at")
   updatedAt              DateTime     @updatedAt @map("updated_at")
 
-  createdBy      User            @relation("CreatedTickets", fields: [createdById], references: [id])
-  assignedPpdUser User?          @relation("AssignedPpdTickets", fields: [assignedPpdUserId], references: [id])
-  histories      TicketHistory[]
+  createdBy       User            @relation("CreatedTickets", fields: [createdById], references: [id])
+  assignedPpdUser1 User?          @relation("AssignedPpdTickets1", fields: [assignedPpdUserId1], references: [id])
+  assignedPpdUser2 User?          @relation("AssignedPpdTickets2", fields: [assignedPpdUserId2], references: [id])
+  histories       TicketHistory[]
 
   @@map("tickets")
 }

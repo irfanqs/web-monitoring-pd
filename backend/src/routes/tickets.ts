@@ -43,7 +43,8 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
     const tickets = await prisma.ticket.findMany({
       include: {
         createdBy: { select: { id: true, name: true } },
-        assignedPpdUser: { select: { id: true, name: true } },
+        assignedPpdUser1: { select: { id: true, name: true } },
+        assignedPpdUser2: { select: { id: true, name: true } },
         histories: {
           include: { processedBy: { select: { id: true, name: true } } },
           orderBy: { stepNumber: 'asc' },
@@ -81,7 +82,8 @@ router.get('/my-tasks', authenticate, async (req: AuthRequest, res: Response) =>
       },
       include: {
         createdBy: { select: { id: true, name: true } },
-        assignedPpdUser: { select: { id: true, name: true } },
+        assignedPpdUser1: { select: { id: true, name: true } },
+        assignedPpdUser2: { select: { id: true, name: true } },
         histories: {
           include: { processedBy: { select: { id: true, name: true } } },
           orderBy: { stepNumber: 'asc' },
@@ -114,12 +116,12 @@ router.get('/my-tasks', authenticate, async (req: AuthRequest, res: Response) =>
       
       // Normal sequential flow - check if user's step matches current step
       if (stepNumbers.includes(ticket.currentStep) && applicableStepNumbers.includes(ticket.currentStep)) {
-        // Special check for step 12 (PPD) - only show to assigned user
-        if (ticket.currentStep === 12 && ticket.assignedPpdUserId) {
-          if (ticket.assignedPpdUserId === req.user!.id) {
+        // Special check for step 12 (PPD) - only show to assigned users
+        if (ticket.currentStep === 12 && (ticket.assignedPpdUserId1 || ticket.assignedPpdUserId2)) {
+          if (ticket.assignedPpdUserId1 === req.user!.id || ticket.assignedPpdUserId2 === req.user!.id) {
             return ticket;
           }
-          // If step 12 is assigned to someone else, don't show to other PPD users
+          // If step 12 is assigned to specific users, don't show to other PPD users
           return null;
         }
         
@@ -153,7 +155,8 @@ router.get('/my-history', authenticate, async (req: AuthRequest, res: Response) 
       },
       include: {
         createdBy: { select: { id: true, name: true } },
-        assignedPpdUser: { select: { id: true, name: true } },
+        assignedPpdUser1: { select: { id: true, name: true } },
+        assignedPpdUser2: { select: { id: true, name: true } },
         histories: {
           include: { processedBy: { select: { id: true, name: true } } },
           orderBy: { stepNumber: 'asc' },
@@ -177,7 +180,8 @@ router.get('/:id', authenticate, async (req: AuthRequest, res: Response) => {
       where: { id: req.params.id },
       include: {
         createdBy: { select: { id: true, name: true } },
-        assignedPpdUser: { select: { id: true, name: true } },
+        assignedPpdUser1: { select: { id: true, name: true } },
+        assignedPpdUser2: { select: { id: true, name: true } },
         histories: {
           include: { processedBy: { select: { id: true, name: true } } },
           orderBy: { stepNumber: 'asc' },
@@ -196,7 +200,7 @@ router.get('/:id', authenticate, async (req: AuthRequest, res: Response) => {
 // Create ticket (Admin only)
 router.post('/', authenticate, requireRole('admin'), async (req: AuthRequest, res: Response) => {
   try {
-    const { activityName, assignmentLetterNumber, uraian, isLs, startDate, assignedPpdUserId } = req.body;
+    const { activityName, assignmentLetterNumber, uraian, isLs, startDate, assignedPpdUserId1, assignedPpdUserId2 } = req.body;
 
     // Use startDate year for ticket number, default to current date if not provided
     const ticketStartDate = startDate ? new Date(startDate) : new Date();
@@ -236,7 +240,8 @@ router.post('/', authenticate, requireRole('admin'), async (req: AuthRequest, re
         startDate: ticketStartDate,
         isLs: isLs || false,
         currentStep: startStep,
-        assignedPpdUserId: assignedPpdUserId || null,
+        assignedPpdUserId1: assignedPpdUserId1 || null,
+        assignedPpdUserId2: assignedPpdUserId2 || null,
         createdById: req.user!.id,
       },
       include: { createdBy: { select: { id: true, name: true } } },
@@ -277,8 +282,8 @@ router.post('/:id/process', authenticate, upload.single('file'), async (req: Aut
     }
 
     // Special check for step 12 (PPD) - only assigned user can process
-    if (stepToProcess === 12 && (ticket as any).assignedPpdUserId) {
-      if ((ticket as any).assignedPpdUserId !== req.user!.id) {
+    if (stepToProcess === 12 && ((ticket as any).assignedPpdUserId1 || (ticket as any).assignedPpdUserId2)) {
+      if ((ticket as any).assignedPpdUserId1 !== req.user!.id && (ticket as any).assignedPpdUserId2 !== req.user!.id) {
         return res.status(403).json({ error: 'This ticket is assigned to another PPD user' });
       }
     }
@@ -607,7 +612,8 @@ router.post('/:id/return-to-previous', authenticate, async (req: AuthRequest, re
       },
       include: {
         createdBy: { select: { id: true, name: true } },
-        assignedPpdUser: { select: { id: true, name: true } },
+        assignedPpdUser1: { select: { id: true, name: true } },
+        assignedPpdUser2: { select: { id: true, name: true } },
         histories: {
           include: { processedBy: { select: { id: true, name: true } } },
           orderBy: { stepNumber: 'asc' },
