@@ -619,7 +619,7 @@ export default function MyTasksPage() {
                 Perhatian!
               </p>
               <p className="text-sm text-red-700 leading-relaxed">
-                Anda akan mengembalikan PD <strong>{returnTicket?.ticketNumber}</strong> ke step sebelumnya. 
+                Anda akan mengembalikan PD ke step sebelumnya. 
                 Riwayat step terakhir akan dihapus dan PD akan kembali ke step sebelumnya untuk diproses ulang.
               </p>
             </div>

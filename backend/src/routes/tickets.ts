@@ -585,14 +585,15 @@ router.post('/:id/return-to-previous', authenticate, async (req: AuthRequest, re
       });
     }
 
-    // Create return history entry with note
+    // Create return history entry with note at the PREVIOUS step
+    // So the person who will redo the step can see the return reason
     await prisma.ticketHistory.create({
       data: {
         ticketId: ticket.id,
-        stepNumber: ticket.currentStep,
+        stepNumber: previousStep, // Save at previous step, not current step
         processedById: req.user!.id,
         processorName: req.user!.name,
-        notes: `[DIKEMBALIKAN] ${returnNotes}`,
+        notes: `[DIKEMBALIKAN DARI STEP ${ticket.currentStep}] ${returnNotes}`,
         processedAt: new Date(),
       },
     });
