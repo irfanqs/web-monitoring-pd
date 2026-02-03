@@ -55,6 +55,8 @@ interface Ticket {
   startDate: string;
   createdAt: string;
   createdBy: { name: string };
+  assignedPpdUser1?: { id: string; name: string } | null;
+  assignedPpdUser2?: { id: string; name: string } | null;
   histories: Array<{
     stepNumber: number;
     processorName: string;
@@ -86,7 +88,8 @@ export default function TicketsPage() {
     uraian: '',
     startDate: new Date().toISOString().split('T')[0],
     isLs: '' as '' | 'true' | 'false',
-    assignedPpdUserId: '',
+    assignedPpdUserId1: '',
+    assignedPpdUserId2: '',
   });
   const [templateInputs, setTemplateInputs] = useState<Record<string, string>>({});
 
@@ -144,6 +147,14 @@ export default function TicketsPage() {
     const roleName = stepConfig.requiredEmployeeRole 
       ? EMPLOYEE_ROLES[stepConfig.requiredEmployeeRole] || stepConfig.requiredEmployeeRole
       : '-';
+    
+    // For step 12 (PPD), show only the first assigned PPD user
+    if (ticket.currentStep === 12 && ticket.assignedPpdUser1) {
+      return {
+        role: roleName,
+        userName: ticket.assignedPpdUser1.name,
+      };
+    }
     
     // Find all users with this role
     const usersWithRole = users.filter(u => u.employeeRole === stepConfig.requiredEmployeeRole);
@@ -304,7 +315,8 @@ export default function TicketsPage() {
         uraian: '',
         startDate: new Date().toISOString().split('T')[0],
         isLs: '',
-        assignedPpdUserId: '',
+        assignedPpdUserId1: '',
+        assignedPpdUserId2: '',
       });
       setTemplateInputs({});
       fetchTickets();
@@ -437,10 +449,25 @@ export default function TicketsPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Pelaksana Perjalanan Dinas</Label>
-                  <Select value={form.assignedPpdUserId} onValueChange={(v) => setForm({ ...form, assignedPpdUserId: v })}>
+                  <Label>Pelaksana Perjalanan Dinas 1</Label>
+                  <Select value={form.assignedPpdUserId1} onValueChange={(v) => setForm({ ...form, assignedPpdUserId1: v })}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Pilih PPD..." />
+                      <SelectValue placeholder="Pilih PPD 1..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {users.filter(u => u.employeeRole === 'PPD').map(u => (
+                        <SelectItem key={u.id} value={u.id}>
+                          {u.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Pelaksana Perjalanan Dinas 2</Label>
+                  <Select value={form.assignedPpdUserId2} onValueChange={(v) => setForm({ ...form, assignedPpdUserId2: v })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih PPD 2..." />
                     </SelectTrigger>
                     <SelectContent>
                       {users.filter(u => u.employeeRole === 'PPD').map(u => (
@@ -487,7 +514,7 @@ export default function TicketsPage() {
               />
             </div>
             <div className="flex-[2] pr-2">
-              <Label className="text-xs text-slate-500 mb-1.5 block">Tanggal Penerimaan Berkas</Label>
+              <Label className="text-xs text-slate-500 mb-1.5 block">Tgl Penerimaan Berkas</Label>
               <Input
                 type="date"
                 value={filterDate}
@@ -495,7 +522,7 @@ export default function TicketsPage() {
                 className="h-9"
               />
             </div>
-            <div className="flex-[2] pr-2">
+            <div className="flex-[1] pr-2">
               <Label className="text-xs text-slate-500 mb-1.5 block">Bulan</Label>
               <Input
                 type="month"

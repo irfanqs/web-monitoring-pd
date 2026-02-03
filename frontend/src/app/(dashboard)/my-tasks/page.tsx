@@ -28,6 +28,8 @@ interface Ticket {
   isLs: boolean;
   currentStep: number;
   status: string;
+  assignedPpdUser1?: { id: string; name: string } | null;
+  assignedPpdUser2?: { id: string; name: string } | null;
   histories: Array<{
     id: string;
     stepNumber: number;

@@ -46,6 +46,8 @@ interface Ticket {
   startDate: string;
   createdAt: string;
   createdBy: { name: string };
+  assignedPpdUser1?: { id: string; name: string } | null;
+  assignedPpdUser2?: { id: string; name: string } | null;
   histories: Array<{
     stepNumber: number;
     processorName: string;
@@ -305,7 +307,7 @@ export default function ArchivePage() {
               />
             </div>
             <div className="flex-[2] pr-2">
-              <Label className="text-xs text-slate-500 mb-1.5 block">Tanggal Penerimaan Berkas</Label>
+              <Label className="text-xs text-slate-500 mb-1.5 block">Tgl Penerimaan Berkas</Label>
               <Input
                 type="date"
                 value={filterDate}
@@ -313,7 +315,7 @@ export default function ArchivePage() {
                 className="h-9"
               />
             </div>
-            <div className="flex-[2] pr-2">
+            <div className="flex-[1] pr-2">
               <Label className="text-xs text-slate-500 mb-1.5 block">Bulan</Label>
               <Input
                 type="month"

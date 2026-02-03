@@ -35,7 +35,8 @@ interface Ticket {
   status: string;
   createdAt: string;
   createdBy: { name: string };
-  assignedPpdUser?: { id: string; name: string } | null;
+  assignedPpdUser1?: { id: string; name: string } | null;
+  assignedPpdUser2?: { id: string; name: string } | null;
   histories: Array<{
     id: string;
     stepNumber: number;
@@ -78,9 +79,12 @@ export default function TicketDetailPage() {
   const getStepConfig = (stepNumber: number) => stepConfigs.find(s => s.stepNumber === stepNumber);
   
   const getPicNames = (employeeRole: string, stepNumber?: number) => {
-    // For step 12 (PPD), if assigned to specific user, show only that user
-    if (stepNumber === 12 && ticket?.assignedPpdUser) {
-      return ticket.assignedPpdUser.name;
+    // For step 12 (PPD), if assigned to specific users, show both assigned users
+    if (stepNumber === 12 && (ticket?.assignedPpdUser1 || ticket?.assignedPpdUser2)) {
+      const names = [];
+      if (ticket.assignedPpdUser1) names.push(ticket.assignedPpdUser1.name);
+      if (ticket.assignedPpdUser2) names.push(ticket.assignedPpdUser2.name);
+      return names.join(' / ');
     }
     
     const usersWithRole = users.filter(u => u.employeeRole === employeeRole);
