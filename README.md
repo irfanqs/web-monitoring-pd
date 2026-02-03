@@ -55,24 +55,24 @@ Frontend akan berjalan di `http://localhost:3000`
 ### Admin & Supervisor
 | Email | Password | Role |
 |-------|----------|------|
-| admin@mail.com | admin123 | Admin |
-| supervisor@mail.com | super123 | Supervisor |
+| admin | admin123 | Admin |
+| supervisor | super123 | Supervisor |
 
 ### Employee (Pegawai)
 | Email | Password | Role | Step |
 |-------|----------|------|------|
-| verifikator@mail.com | pass123 | Verifikator | 1, 6, 8 |
-| pprbpd@mail.com | pass123 | Petugas Pembuat Rincian Biaya PD | 2, 7 |
-| ok@mail.com | pass123 | Operator Komitmen | 3 |
-| ospm@mail.com | pass123 | Operator SPM | 4 |
-| op@mail.com | pass123 | Operator Pembayaran | 5 |
-| ospby@mail.com | pass123 | Operator SPBy | 9 |
-| bp@mail.com | pass123 | Bendahara Pengeluaran | 10 |
-| ppk@mail.com | pass123 | Pejabat Pembuat Komitmen | 11 |
-| ptpd@mail.com | pass123 | Pelaksana Perjalanan Dinas | 12 |
-| adk@mail.com | pass123 | Admin Digit Kemenkeu | Khusus LS |
-| ksbu@mail.com | pass123 | Kepala Sub Bagian Umum | 13 |
-| pabpd@mail.com | pass123 | Petugas Arsip Berkas PD | 14 |
+| verifikator | pass123 | Verifikator | 1, 6, 8 |
+| pprbpd | pass123 | Petugas Pembuat Rincian Biaya PD | 2, 7 |
+| ok | pass123 | Operator Komitmen | 3 |
+| ospm | pass123 | Operator SPM | 4 |
+| op | pass123 | Operator Pembayaran | 5 |
+| ospby | pass123 | Operator SPBy | 9 |
+| bp | pass123 | Bendahara Pengeluaran | 10 |
+| ppk | pass123 | Pejabat Pembuat Komitmen | 11 |
+| ptpd | pass123 | Pelaksana Perjalanan Dinas | 12 |
+| adk | pass123 | Admin Digit Kemenkeu | Khusus LS |
+| ksbu | pass123 | Kepala Sub Bagian Umum | 13 |
+| pabpd | pass123 | Petugas Arsip Berkas PD | 14 |
 
 ## Workflow
 
