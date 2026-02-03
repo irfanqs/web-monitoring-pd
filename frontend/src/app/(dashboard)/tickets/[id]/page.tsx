@@ -349,9 +349,10 @@ export default function TicketDetailPage() {
                         Diproses oleh: {history.processorName}
                       </p>
                       {history.notes && (
-                        <p className="text-sm text-slate-500">
-                          Catatan: {history.notes}
-                        </p>
+                        <div className="text-sm text-slate-500">
+                          <span className="font-medium">Catatan:</span>
+                          <p className="whitespace-pre-wrap mt-1">{history.notes}</p>
+                        </div>
                       )}
                       {history.fileName && (
                         <Button

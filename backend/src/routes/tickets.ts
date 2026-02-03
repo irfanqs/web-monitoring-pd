@@ -540,4 +540,85 @@ router.post('/:id/admin-skip', authenticate, requireRole('admin'), async (req: A
   }
 });
 
+// Return ticket to previous step (untuk koreksi)
+router.post('/:id/return-to-previous', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: req.params.id },
+      include: { 
+        histories: {
+          orderBy: { stepNumber: 'desc' },
+        },
+      },
+    });
+
+    if (!ticket) {
+      return res.status(404).json({ error: 'Ticket not found' });
+    }
+
+    if (ticket.currentStep === 1) {
+      return res.status(400).json({ error: 'Cannot return from step 1' });
+    }
+
+    const { returnNotes } = req.body;
+    
+    if (!returnNotes || returnNotes.trim() === '') {
+      return res.status(400).json({ error: 'Catatan alasan pengembalian wajib diisi' });
+    }
+
+    // Get applicable steps for this ticket type
+    const applicableSteps = await getStepConfigs(ticket.isLs);
+
+    // Find previous step in the applicable steps
+    const currentIndex = applicableSteps.findIndex(s => s.stepNumber === ticket.currentStep);
+    let previousStep = 1;
+
+    if (currentIndex > 0) {
+      previousStep = applicableSteps[currentIndex - 1].stepNumber;
+    }
+
+    // Delete the most recent history entry (the one being returned)
+    const lastHistory = ticket.histories[0]; // Already sorted desc
+    if (lastHistory) {
+      await prisma.ticketHistory.delete({
+        where: { id: lastHistory.id },
+      });
+    }
+
+    // Create return history entry with note
+    await prisma.ticketHistory.create({
+      data: {
+        ticketId: ticket.id,
+        stepNumber: ticket.currentStep,
+        processedById: req.user!.id,
+        processorName: req.user!.name,
+        notes: `[DIKEMBALIKAN] ${returnNotes}`,
+        processedAt: new Date(),
+      },
+    });
+
+    // Update ticket to previous step
+    const updatedTicket = await prisma.ticket.update({
+      where: { id: ticket.id },
+      data: {
+        currentStep: previousStep,
+        status: 'in_progress',
+      },
+      include: {
+        createdBy: { select: { id: true, name: true } },
+        assignedPpdUser: { select: { id: true, name: true } },
+        histories: {
+          include: { processedBy: { select: { id: true, name: true } } },
+          orderBy: { stepNumber: 'asc' },
+        },
+      },
+    });
+
+    res.json(updatedTicket);
+  } catch (error) {
+    console.error('Return to previous error:', error);
+    res.status(500).json({ error: 'Failed to return ticket to previous step' });
+  }
+});
+
 export { router as ticketRouter };

@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { ProgressIndicator } from '@/components/ProgressIndicator';
 import { EMPLOYEE_ROLES, STEP_ROLES } from '@/lib/constants';
-import { Upload, Download, FileText, Eye } from 'lucide-react';
+import { Upload, Download, FileText, Eye, RotateCcw } from 'lucide-react';
 
 interface Ticket {
   id: string;
@@ -35,6 +35,7 @@ interface Ticket {
     processedAt: string;
     fileUrl: string;
     fileName: string;
+    notes: string;
   }>;
 }
 
@@ -59,6 +60,13 @@ export default function MyTasksPage() {
   const [selisihType, setSelisihType] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [stepConfigs, setStepConfigs] = useState<StepConfig[]>([]);
+  
+  // Return to previous step states
+  const [showReturnDialog, setShowReturnDialog] = useState(false);
+  const [returnTicket, setReturnTicket] = useState<Ticket | null>(null);
+  const [returnNotes, setReturnNotes] = useState('');
+  const [returning, setReturning] = useState(false);
+  
   const { user } = useAuthStore();
 
   const fetchTasks = () => {
@@ -169,6 +177,36 @@ export default function MyTasksPage() {
       link.remove();
     } catch (error) {
       console.error('Download failed', error);
+    }
+  };
+
+  const handleOpenReturnDialog = (ticket: Ticket) => {
+    setReturnTicket(ticket);
+    setReturnNotes('');
+    setShowReturnDialog(true);
+  };
+
+  const handleReturnToPrevious = async () => {
+    if (!returnTicket || !returnNotes.trim()) {
+      alert('Catatan alasan pengembalian wajib diisi');
+      return;
+    }
+
+    setReturning(true);
+    try {
+      await api.post(`/tickets/${returnTicket.id}/return-to-previous`, {
+        returnNotes: returnNotes.trim(),
+      });
+      setShowReturnDialog(false);
+      setReturnTicket(null);
+      setReturnNotes('');
+      fetchTasks();
+      fetchHistory();
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Gagal mengembalikan ke step sebelumnya');
+      console.error(error);
+    } finally {
+      setReturning(false);
     }
   };
 
@@ -296,10 +334,26 @@ export default function MyTasksPage() {
                   </div>
                 )}
 
-                <Button onClick={() => handleOpenProcess(ticket)}>
-                  <Upload className="w-4 h-4 mr-2" />
-                  Proses PD
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => handleOpenProcess(ticket)}
+                    className="flex-1"
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Proses PD
+                  </Button>
+                  
+                  {ticket.currentStep > 1 && (
+                    <Button 
+                      onClick={() => handleOpenReturnDialog(ticket)}
+                      variant="destructive"
+                      className="flex-1"
+                    >
+                      <RotateCcw className="w-4 h-4 mr-2" />
+                      Kembalikan
+                    </Button>
+                  )}
+                </div>
               </CardContent>
             </Card>
                 );
@@ -446,6 +500,36 @@ export default function MyTasksPage() {
               </div>
             )}
 
+            {/* Catatan dari Step Sebelumnya */}
+            {selectedTicket && selectedStep && selectedStep > 1 && (() => {
+              // Cari notes dari step sebelumnya (step terakhir yang diproses)
+              const previousHistory = selectedTicket.histories
+                .filter(h => h.stepNumber < selectedStep)
+                .sort((a, b) => b.stepNumber - a.stepNumber)[0];
+
+              if (previousHistory?.notes) {
+                return (
+                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                    <div className="flex items-start gap-2">
+                      <FileText className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-purple-900 mb-1">
+                          Catatan dari Step {previousHistory.stepNumber}
+                        </p>
+                        <p className="text-sm text-purple-700 leading-relaxed whitespace-pre-wrap">
+                          {previousHistory.notes}
+                        </p>
+                        <p className="text-xs text-purple-600 mt-2">
+                          Oleh: {previousHistory.processorName} • {new Date(previousHistory.processedAt).toLocaleString('id-ID')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })()}
+
             {selectedStep === 6 && selectedTicket?.isLs && (
               <div className="space-y-2">
                 <Label>Selisih Anggaran <span className="text-red-500">*</span></Label>
@@ -516,6 +600,79 @@ export default function MyTasksPage() {
             >
               {loading ? 'Memproses...' : 'Submit'}
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Kembalikan ke Step Sebelumnya */}
+      <Dialog open={showReturnDialog} onOpenChange={setShowReturnDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-red-600 flex items-center gap-2">
+              <RotateCcw className="w-5 h-5" />
+              Kembalikan ke Step Sebelumnya
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+              <p className="text-sm text-red-800 font-medium mb-2">
+                Perhatian!
+              </p>
+              <p className="text-sm text-red-700 leading-relaxed">
+                Anda akan mengembalikan PD <strong>{returnTicket?.ticketNumber}</strong> ke step sebelumnya. 
+                Riwayat step terakhir akan dihapus dan PD akan kembali ke step sebelumnya untuk diproses ulang.
+              </p>
+            </div>
+
+            {returnTicket && (
+              <div className="bg-slate-50 p-3 rounded-lg">
+                <p className="text-sm text-slate-600">
+                  <strong>Nomor PD:</strong> {returnTicket.ticketNumber}
+                </p>
+                <p className="text-sm text-slate-600 mt-1">
+                  <strong>Aktivitas:</strong> {returnTicket.activityName}
+                </p>
+                <p className="text-sm text-slate-600 mt-1">
+                  <strong>Step Saat Ini:</strong> {returnTicket.currentStep}
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label className="text-red-700">
+                Alasan Pengembalian <span className="text-red-500">*</span>
+              </Label>
+              <Textarea
+                value={returnNotes}
+                onChange={(e) => setReturnNotes(e.target.value)}
+                placeholder="Jelaskan alasan pengembalian (wajib diisi)..."
+                rows={4}
+                className="border-red-300 focus:border-red-500 focus:ring-red-500"
+              />
+              <p className="text-xs text-red-600">
+                Catatan ini akan dicatat dalam riwayat dan dilihat oleh petugas step sebelumnya.
+              </p>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowReturnDialog(false)}
+                className="flex-1"
+                disabled={returning}
+              >
+                Batal
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleReturnToPrevious}
+                className="flex-1"
+                disabled={returning || !returnNotes.trim()}
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                {returning ? 'Mengembalikan...' : 'Kembalikan'}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
