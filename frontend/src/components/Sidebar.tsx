@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
@@ -64,25 +65,33 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   return (
     <aside 
       className={cn(
-        "bg-slate-900 text-white h-screen flex flex-col sticky top-0 transition-all duration-300",
+        "bg-[#f1f7fd] text-[#0160a9] h-screen flex flex-col sticky top-0 transition-all duration-300 shadow-lg",
         collapsed ? "w-16" : "w-64"
       )}
     >
       <div className={cn(
-        "p-4 border-b border-slate-700 flex items-center",
+        "p-4 border-b border-[#0160a9]/10 flex items-center",
         collapsed ? "justify-center" : "justify-between"
       )}>
         <div className={cn(
           "overflow-hidden transition-all duration-300",
           collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
         )}>
-          <h1 className="text-xl font-bold whitespace-nowrap">Monitoring PD</h1>
-          <p className="text-sm text-slate-400 mt-1 whitespace-nowrap">Balmon I Semarang</p>
+          {/* Logo Balmon */}
+          <Image 
+            src="/logo-balmon.png" 
+            alt="Balai Monitor Logo" 
+            width={200} 
+            height={80}
+            className="object-contain"
+            priority
+          />
+          <p className="text-xs text-[#0160a9]/70 mt-2 whitespace-nowrap text-center">Balmon I Semarang</p>
         </div>
         <Button
           variant="ghost"
           size="sm"
-          className="bg-slate-700 text-white hover:bg-slate-600 p-2"
+          className="bg-[#0160a9]/10 text-[#0160a9] hover:bg-[#0160a9]/20 p-2"
           onClick={onToggle}
         >
           {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
@@ -98,8 +107,8 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                 className={cn(
                   'flex items-center rounded-lg transition-colors',
                   pathname === link.href
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-300 hover:bg-slate-800',
+                    ? 'bg-[#0160a9] text-white font-medium shadow-md'
+                    : 'text-[#0160a9] hover:bg-[#0160a9]/10',
                   collapsed ? 'justify-center px-2 py-3' : 'gap-3 px-3 py-3'
                 )}
                 title={collapsed ? link.label : undefined}
@@ -117,16 +126,16 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         </ul>
       </nav>
 
-      <div className="p-2 border-t border-slate-700 mt-auto">
+      <div className="p-2 border-t border-[#0160a9]/10 mt-auto">
         {!collapsed && (
-          <div className="mb-3 px-3 py-2 bg-slate-800 rounded-lg">
+          <div className="mb-3 px-3 py-2 bg-[#0160a9]/10 rounded-lg border border-[#0160a9]/20">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-slate-600 flex items-center justify-center">
-                <User className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-full bg-[#0160a9]/20 flex items-center justify-center">
+                <User className="w-5 h-5 text-[#0160a9]" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{user?.name}</p>
-                <p className="text-xs text-slate-400 truncate">
+                <p className="font-medium truncate text-[#0160a9]">{user?.name}</p>
+                <p className="text-xs text-[#0160a9]/70 truncate">
                   {user?.systemRole === 'employee' && user?.employeeRole
                     ? EMPLOYEE_ROLES[user.employeeRole]
                     : SYSTEM_ROLES[user?.systemRole || '']}
@@ -137,15 +146,15 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         )}
         {collapsed && (
           <div className="mb-3 flex justify-center">
-            <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center" title={user?.name}>
-              <User className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-full bg-[#0160a9]/20 flex items-center justify-center" title={user?.name}>
+              <User className="w-5 h-5 text-[#0160a9]" />
             </div>
           </div>
         )}
         <Button
           variant="ghost"
           className={cn(
-            "w-full text-slate-300 hover:text-white hover:bg-slate-800",
+            "w-full text-[#0160a9] hover:text-white hover:bg-[#0160a9]",
             collapsed ? "justify-center px-2" : "justify-start"
           )}
           onClick={handleLogout}

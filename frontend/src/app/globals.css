@@ -126,4 +126,9 @@
     @apply bg-background text-foreground;
     overscroll-behavior: none;
   }
+  
+  /* Heading colors */
+  h1, h2, h3, h4, h5, h6 {
+    color: #1E40AF;
+  }
 }
