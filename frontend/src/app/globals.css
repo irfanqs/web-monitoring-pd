@@ -123,12 +123,18 @@
     font-size: 14px; /* Smaller base font for compact UI */
   }
   html, body {
-    @apply bg-background text-foreground;
+    @apply bg-background;
+    color: #444444;
     overscroll-behavior: none;
   }
   
   /* Heading colors */
   h1, h2, h3, h4, h5, h6 {
-    color: #1E40AF;
+    color: #2880b9;
+  }
+  
+  /* Text colors */
+  p, span, div {
+    color: #444444;
   }
 }

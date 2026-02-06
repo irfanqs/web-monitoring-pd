@@ -79,7 +79,6 @@ export default function TicketDetailPage() {
   const getStepConfig = (stepNumber: number) => stepConfigs.find(s => s.stepNumber === stepNumber);
   
   const getPicNames = (employeeRole: string, stepNumber?: number) => {
-    // For step 12 (PPD), if assigned to specific users, show both assigned users
     if (stepNumber === 12 && (ticket?.assignedPpdUser1 || ticket?.assignedPpdUser2)) {
       const names = [];
       if (ticket.assignedPpdUser1) names.push(ticket.assignedPpdUser1.name);
@@ -140,12 +139,12 @@ export default function TicketDetailPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button size="sm" className="bg-slate-800 text-white hover:bg-slate-700 mr-2" onClick={() => router.push('/tickets')}>
+          <Button size="sm" className="bg-[#2880b9] text-white hover:bg-[#2880b9]/90 mr-2" onClick={() => router.push('/tickets')}>
             <ArrowLeft className="w-4 h-4 " />
           </Button>
           <div>
             <h1 className="text-2xl font-bold">{ticket.activityName}</h1>
-            <p className="text-slate-500">{ticket.assignmentLetterNumber}</p>
+            <p className="text-[#444444]/70">{ticket.assignmentLetterNumber}</p>
           </div>
         </div>
         <Badge
@@ -154,7 +153,7 @@ export default function TicketDetailPage() {
               ? 'bg-green-500 hover:bg-green-600 text-white text-lg px-4 py-1'
               : ticket.status === 'in_progress'
               ? 'bg-blue-500 hover:bg-blue-600 text-white text-lg px-4 py-1'
-              : 'bg-yellow-300 hover:bg-yellow-400 text-slate-900 text-lg px-4 py-1'
+              : 'bg-yellow-300 hover:bg-yellow-400 text-[#444444] text-lg px-4 py-1'
           }
         >
           {ticket.status === 'completed'
@@ -197,7 +196,7 @@ export default function TicketDetailPage() {
                   // Parallel steps view
                   return (
                     <div>
-                      <p className="text-sm text-slate-500 mb-2">
+                      <p className="text-sm text-[#444444]/70 mb-2">
                         Step {parallelSteps.map(s => s.stepNumber).join(', ')} (Paralel) - {ticket.isLs ? 'LS' : 'Non-LS'}
                       </p>
                       <div className="space-y-2">
@@ -205,14 +204,14 @@ export default function TicketDetailPage() {
                           const isCompleted = ticket.histories.some(h => h.stepNumber === step.stepNumber);
                           const picNames = getPicNames(step.requiredEmployeeRole, step.stepNumber);
                           return (
-                            <div key={step.stepNumber} className={`p-3 rounded-lg border ${isCompleted ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-slate-200'}`}>
+                            <div key={step.stepNumber} className={`p-3 rounded-lg border ${isCompleted ? 'bg-green-50 border-green-200' : 'bg-[#2880b9]/5 border-[#2880b9]/20'}`}>
                               <div className="flex items-center justify-between">
                                 <div>
                                   <p className="font-medium">{EMPLOYEE_ROLES[step.requiredEmployeeRole] || step.stepName}</p>
-                                  <p className="text-sm text-slate-500">PIC: {picNames}</p>
+                                  <p className="text-sm text-[#444444]/70">PIC: {picNames}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <Badge className={isCompleted ? 'bg-green-500' : 'bg-yellow-300 text-slate-900'}>
+                                  <Badge className={isCompleted ? 'bg-green-500' : 'bg-yellow-300 text-[#444444]'}>
                                     {isCompleted ? 'Selesai' : 'Pending'}
                                   </Badge>
                                   {user?.systemRole === 'admin' && !isCompleted && (
@@ -229,7 +228,7 @@ export default function TicketDetailPage() {
                                   )}
                                 </div>
                               </div>
-                              <p className="text-sm text-slate-600 mt-1">{step.description}</p>
+                              <p className="text-sm text-[#444444] mt-1">{step.description}</p>
                             </div>
                           );
                         })}
@@ -243,11 +242,11 @@ export default function TicketDetailPage() {
                     <div>
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-slate-500">Step {ticket.currentStep} dari {getTotalSteps()}</p>
+                          <p className="text-sm text-[#444444]/70">Step {ticket.currentStep} dari {getTotalSteps()}</p>
                           <p className="font-medium text-lg">
                             {currentConfig ? (EMPLOYEE_ROLES[currentConfig.requiredEmployeeRole] || currentConfig.stepName) : ''}
                           </p>
-                          <p className="text-sm text-slate-500">PIC: {picNames}</p>
+                          <p className="text-sm text-[#444444]/70">PIC: {picNames}</p>
                         </div>
                         {user?.systemRole === 'admin' && (
                           <Button
@@ -261,8 +260,8 @@ export default function TicketDetailPage() {
                           </Button>
                         )}
                       </div>
-                      <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 mt-2">
-                        <p className="text-slate-700 leading-relaxed">
+                      <div className="bg-[#2880b9]/5 p-4 rounded-lg border border-[#2880b9]/20 mt-2">
+                        <p className="text-[#444444] leading-relaxed">
                           {currentConfig?.description || 'Tidak ada deskripsi'}
                         </p>
                       </div>
@@ -282,26 +281,26 @@ export default function TicketDetailPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="text-sm text-slate-500">Nomor Surat Tugas</p>
+              <p className="text-sm text-[#444444]/70">Nomor Surat Tugas</p>
               <p className="font-medium">{ticket.assignmentLetterNumber}</p>
             </div>
             {ticket.uraian && (
               <div>
-                <p className="text-sm text-slate-500">Uraian</p>
+                <p className="text-sm text-[#444444]/70">Uraian</p>
                 <p className="font-medium">{ticket.uraian}</p>
               </div>
             )}
             <div>
-              <p className="text-sm text-slate-500">Tipe</p>
+              <p className="text-sm text-[#444444]/70">Tipe</p>
               <Badge variant={ticket.isLs ? 'default' : 'secondary'}>
                 {ticket.isLs ? 'LS (Langsung - Bendahara)' : 'Non-LS'}
               </Badge>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-[#444444]/60 mt-1">
                 Total {getTotalSteps()} step
               </p>
             </div>
             <div>
-              <p className="text-sm text-slate-500">Tanggal Penerimaan Berkas</p>
+              <p className="text-sm text-[#444444]/70">Tanggal Penerimaan Berkas</p>
               <p className="font-medium">
                 {new Date(ticket.startDate).toLocaleDateString('id-ID', { 
                   weekday: 'long', 
@@ -312,11 +311,11 @@ export default function TicketDetailPage() {
               </p>
             </div>
             <div>
-              <p className="text-sm text-slate-500">Dibuat Oleh</p>
+              <p className="text-sm text-[#444444]/70">Dibuat Oleh</p>
               <p className="font-medium">{ticket.createdBy.name}</p>
             </div>
             <div>
-              <p className="text-sm text-slate-500">Tanggal Dibuat</p>
+              <p className="text-sm text-[#444444]/70">Tanggal Dibuat</p>
               <p className="font-medium">
                 {new Date(ticket.createdAt).toLocaleString('id-ID')}
               </p>
@@ -331,29 +330,29 @@ export default function TicketDetailPage() {
           <CardContent>
             <div className="space-y-4">
               {ticket.histories.length === 0 ? (
-                <p className="text-slate-500">Belum ada riwayat</p>
+                <p className="text-[#444444]/70">Belum ada riwayat</p>
               ) : (
                 ticket.histories.map((history) => {
                   const stepConfig = getStepConfig(history.stepNumber);
                   return (
                     <div
                       key={history.id}
-                      className="p-4 bg-slate-50 rounded-lg space-y-2"
+                      className="p-4 bg-[#2880b9]/5 rounded-lg space-y-2 border border-[#2880b9]/10"
                     >
                       <div className="flex items-center justify-between">
                         <Badge>Step {history.stepNumber}</Badge>
-                        <span className="text-sm text-slate-500">
+                        <span className="text-sm text-[#444444]/70">
                           {new Date(history.processedAt).toLocaleString('id-ID')}
                         </span>
                       </div>
                       <p className="font-medium">
                         {stepConfig ? (EMPLOYEE_ROLES[stepConfig.requiredEmployeeRole] || stepConfig.stepName) : `Step ${history.stepNumber}`}
                       </p>
-                      <p className="text-sm text-slate-600">
+                      <p className="text-sm text-[#444444]">
                         Diproses oleh: {history.processorName}
                       </p>
                       {history.notes && (
-                        <div className="text-sm text-slate-500">
+                        <div className="text-sm text-[#444444]/70">
                           <span className="font-medium">Catatan:</span>
                           <p className="whitespace-pre-wrap mt-1">{history.notes}</p>
                         </div>

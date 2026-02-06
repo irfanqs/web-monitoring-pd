@@ -70,28 +70,27 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
       )}
     >
       <div className={cn(
-        "p-4 border-b border-[#0160a9]/10 flex items-center",
-        collapsed ? "justify-center" : "justify-between"
+        "p-4 border-b border-[#0160a9]/10 flex items-center justify-between gap-3",
+        collapsed && "justify-center"
       )}>
-        <div className={cn(
-          "overflow-hidden transition-all duration-300",
-          collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
-        )}>
-          {/* Logo Balmon */}
-          <Image 
-            src="/logo-balmon.png" 
-            alt="Balai Monitor Logo" 
-            width={200} 
-            height={80}
-            className="object-contain"
-            priority
-          />
-          <p className="text-xs text-[#0160a9]/70 mt-2 whitespace-nowrap text-center">Balmon I Semarang</p>
-        </div>
+        {!collapsed && (
+          <div className="flex-1">
+            {/* Logo Balmon */}
+            <Image 
+              src="/logo-balmon.png" 
+              alt="Balai Monitor Logo" 
+              width={200} 
+              height={80}
+              className="object-contain"
+              priority
+            />
+            <p className="text-xs text-[#0160a9]/70 mt-2 whitespace-wrap text-left">Monitoring Perjalanan Dinas Balmon I Semarang</p>
+          </div>
+        )}
         <Button
           variant="ghost"
           size="sm"
-          className="bg-[#0160a9]/10 text-[#0160a9] hover:bg-[#0160a9]/20 p-2"
+          className="bg-[#0160a9]/10 text-[#0160a9] hover:bg-[#0160a9]/20 p-2 flex-shrink-0"
           onClick={onToggle}
         >
           {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
@@ -107,15 +106,19 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                 className={cn(
                   'flex items-center rounded-lg transition-colors',
                   pathname === link.href
-                    ? 'bg-[#0160a9] text-white font-medium shadow-md'
-                    : 'text-[#0160a9] hover:bg-[#0160a9]/10',
+                    ? 'bg-[#2880b9] !text-white font-medium shadow-md'
+                    : 'text-[#2880b9] hover:bg-[#2880b9]/10',
                   collapsed ? 'justify-center px-2 py-3' : 'gap-3 px-3 py-3'
                 )}
                 title={collapsed ? link.label : undefined}
               >
-                <link.icon className="w-5 h-5 flex-shrink-0" />
+                <link.icon className={cn(
+                  "w-5 h-5 flex-shrink-0",
+                  pathname === link.href ? "text-white" : ""
+                )} />
                 <span className={cn(
                   "whitespace-nowrap overflow-hidden transition-all duration-300",
+                  pathname === link.href ? "text-white" : "",
                   collapsed ? "w-0 opacity-0" : "w-auto opacity-100"
                 )}>
                   {link.label}

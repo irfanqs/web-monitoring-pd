@@ -50,11 +50,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#f1f7fd] to-[#e3f2fd]">
+      <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Monitoring Dashboard</CardTitle>
-          <p className="text-slate-500">Perjalanan Dinas</p>
+          <CardTitle className="text-2xl text-[#2880b9]">Monitoring Dashboard</CardTitle>
+          <p className="text-[#444444]/70">Perjalanan Dinas</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -68,7 +68,7 @@ export default function LoginPage() {
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username" className="text-[#444444]">Username</Label>
               <Input
                 id="username"
                 type="text"
@@ -76,10 +76,11 @@ export default function LoginPage() {
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="username"
                 required
+                className="border-[#2880b9]/30 focus:border-[#2880b9] focus:ring-[#2880b9]"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-[#444444]">Password</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -88,12 +89,12 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   required
-                  className="pr-10"
+                  className="pr-10 border-[#2880b9]/30 focus:border-[#2880b9] focus:ring-[#2880b9]"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#444444]/60 hover:text-[#2880b9] transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? (
@@ -104,7 +105,7 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full bg-[#2880b9] hover:bg-[#2880b9]/90 text-white" disabled={loading}>
               {loading ? 'Loading...' : 'Login'}
             </Button>
           </form>
