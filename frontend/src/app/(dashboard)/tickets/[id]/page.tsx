@@ -256,7 +256,7 @@ export default function TicketDetailPage() {
                             className="text-orange-600 border-orange-300 hover:bg-orange-50"
                           >
                             <SkipForward className="w-4 h-4 mr-2" />
-                            {skipping ? 'Skipping...' : 'Skip Step (Debug)'}
+                            {skipping ? 'Skipping...' : 'Skip Step'}
                           </Button>
                         )}
                       </div>
