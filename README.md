@@ -1,6 +1,6 @@
 # Monitoring Dashboard - Perjalanan Dinas
 
-Sistem monitoring workflow perjalanan dinas dengan 14 step proses.
+Sistem monitoring workflow perjalanan dinas dengan 15 step proses.
 
 ## Tech Stack
 
@@ -53,49 +53,68 @@ Frontend akan berjalan di `http://localhost:3000`
 ## Dummy Users
 
 ### Admin & Supervisor
-| Email | Password | Role |
-|-------|----------|------|
-| admin | admin123 | Admin |
-| supervisor | super123 | Supervisor |
+| Username | Password | Name | Role |
+|----------|----------|------|------|
+| admin | admin123 | Admin User | Admin |
+| supervisor | super123 | Supervisor User | Supervisor |
 
 ### Employee (Pegawai)
-| Email | Password | Role | Step |
-|-------|----------|------|------|
-| verifikator | pass123 | Verifikator | 1, 6, 8 |
-| pprbpd | pass123 | Petugas Pembuat Rincian Biaya PD | 2, 7 |
-| ok | pass123 | Operator Komitmen | 3 |
-| ospm | pass123 | Operator SPM | 4 |
-| op | pass123 | Operator Pembayaran | 5 |
-| ospby | pass123 | Operator SPBy | 9 |
-| bp | pass123 | Bendahara Pengeluaran | 10 |
-| ppk | pass123 | Pejabat Pembuat Komitmen | 11 |
-| ptpd | pass123 | Pelaksana Perjalanan Dinas | 12 |
-| adk | pass123 | Admin Digit Kemenkeu | Khusus LS |
-| ksbu | pass123 | Kepala Sub Bagian Umum | 13 |
-| pabpd | pass123 | Petugas Arsip Berkas PD | 14 |
+| Username | Password | Name | Role | Step |
+|----------|----------|------|------|------|
+| verifikator | pass123 | Kusmono | Verifikator | 1, 6, 8 |
+| ilhampd | pass123 | Ilham | Petugas Pembuat Rincian Biaya PD | 2, 7 |
+| ratih | pass123 | Ratih | Petugas Pembuat Rincian Biaya PD | 2, 7 |
+| mami | pass123 | Mami | Operator Komitmen | 3 |
+| ospm | pass123 | Operator SPM User | Operator SPM | 4 |
+| op | pass123 | - | Operator Pembayaran | 5 |
+| ospby | pass123 | Operator SPBy User | Operator SPBy | 9 |
+| salma | pass123 | Salma | Bendahara Pengeluaran | 10 |
+| asbari | pass123 | Asbari | Pejabat Pembuat Komitmen | 11 |
+| ppd | pass123 | user1 | Pelaksana Perjalanan Dinas | 12 |
+| ppd2 | pass123 | user2 | Pelaksana Perjalanan Dinas | 12 |
+| putri | pass123 | Putri | Admin Digit Kemenkeu | 13 (Khusus LS) |
+| sutrisno | pass123 | Sutrisno | Kepala Sub Bagian Umum | 14 |
+| ilhamarsip | pass123 | Ilham | Petugas Arsip Berkas PD | 15 |
 
 ## Workflow
 
 ### LS (Langsung)
 - Step 1-3 dapat diproses secara **paralel** (tidak perlu menunggu)
 - Setelah step 1-3 selesai, lanjut ke step 4
-- File upload opsional untuk step 1-3
+- Step 13 khusus untuk LS saja
+- Total 15 step
 
 ### Non-LS
-- Langsung mulai dari **step 6** (skip step 1-5)
+- Langsung mulai dari **step 6** (skip step 1-5 dan 13)
+- Total 9 step (6-12, 14-15)
 
-### Steps
-1. Verifikator - Membuat rekapitulasi biaya perjalanan dinas
-2. Petugas Pembuat Rincian Biaya PD - Membuat daftar nominatif
-3. Operator Komitmen - Memasukkan nilai ke SAKTI
-4. **Operator SPM** - Mengecek ketersediaan anggaran
-5. Operator Pembayaran - Proses Pembayaran
-6. Verifikator - Memeriksa kelengkapan berkas
-7. Petugas Pembuat Rincian Biaya PD - Membuat rincian biaya
-8. Verifikator - Memeriksa rincian biaya
-9. **Operator SPBy** - Memeriksa selisih anggaran
-10. Bendahara Pengeluaran - Menandatangani kuitansi
-11. Pejabat Pembuat Komitmen (PPK) - Menandatangani kuitansi
-12. Pelaksana Perjalanan Dinas - Menandatangani kuitansi
-13. Kepala Sub Bagian Umum - Menandatangani kuitansi
-14. Petugas Arsip Berkas PD - Mengarsipkan berkas
+### Steps Detail
+1. **Verifikator** - Membuat rekapitulasi biaya perjalanan dinas berdasarkan Surat Tugas dan Nota Dinas Anggaran *(LS Only, Paralel)*
+2. **Petugas Pembuat Rincian Biaya PD** - Membuat daftar nominatif biaya perjalanan dinas *(LS Only, Paralel)*
+3. **Operator Komitmen** - Memasukkan nilai permohonan anggaran biaya ke aplikasi SAKTI *(LS Only, Paralel)*
+4. **Operator SPM** - Mengecek ketersediaan anggaran *(LS Only)*
+5. **Operator Pembayaran** - Memasukkan nilai permohonan anggaran biaya ke aplikasi SAKTI *(LS Only)*
+6. **Verifikator** - Memeriksa kelengkapan berkas perjalanan dinas dari pelaksana perjalanan dinas. Pilih status selisih: Nihil/Kurang/Lebih
+7. **Petugas Pembuat Rincian Biaya PD** - Membuat rincian biaya perjalanan dinas
+8. **Verifikator** - Memeriksa rincian biaya perjalanan dinas
+9. **Operator SPBy** - Memeriksa rincian biaya perjalanan dinas dibandingkan dengan permohonan anggaran biaya awal apakah ada selisih lebih untuk pengembalian atau tidak
+10. **Bendahara Pengeluaran** - Menandatangani kuitansi dll berkas perjalanan dinas
+11. **Pejabat Pembuat Komitmen** - Menandatangani kuitansi dll berkas perjalanan dinas
+12. **Pelaksana Perjalanan Dinas** - Menandatangani kuitansi dll berkas perjalanan dinas
+13. **Admin Digit Kemenkeu** - Melakukan pengembalian selisih kelebihan anggaran ke MPN G3 Modul Penerimaan Negara versi G3 *(Khusus LS)*
+14. **Kepala Sub Bagian Umum** - Menandatangani kuitansi dll berkas perjalanan dinas
+15. **Petugas Arsip Berkas PD** - Mengarsipkan kuitansi dll berkas perjalanan dinas
+
+## Features
+
+- **Dashboard** - Overview statistik PD
+- **PD Aktif** - Monitoring PD yang sedang berjalan
+- **Arsip** - PD yang sudah selesai (per tahun)
+- **Tugas Saya** - Task list untuk employee
+- **Manajemen User** - CRUD users (Admin only)
+- **Pengaturan Step** - Konfigurasi workflow (Admin only)
+- **Pengaturan Lanjutan** - Template nomor surat (Admin only)
+- **Filter & Sort** - Pencarian dan pengurutan data
+- **File Upload** - Upload dokumen per step
+- **Progress Tracking** - Visual progress indicator
+- **Role-based Access** - Akses berdasarkan role user
