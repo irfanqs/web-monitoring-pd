@@ -256,21 +256,29 @@ router.post('/', authenticate, requireRole('admin'), async (req: AuthRequest, re
 // Process ticket (upload file and move to next step)
 router.post('/:id/process', authenticate, upload.single('file'), async (req: AuthRequest, res: Response) => {
   try {
+    console.log('=== PROCESS TICKET START ===');
+    console.log('Ticket ID:', req.params.id);
+    console.log('User:', req.user?.name, '| Role:', req.user?.employeeRole);
+    console.log('Request body:', req.body);
+    
     const ticket = await prisma.ticket.findUnique({
       where: { id: req.params.id },
       include: { histories: true },
     });
 
     if (!ticket) {
+      console.log('ERROR: Ticket not found');
       return res.status(404).json({ error: 'Ticket not found' });
     }
 
     if (ticket.status === 'completed') {
+      console.log('ERROR: Ticket already completed');
       return res.status(400).json({ error: 'Ticket already completed' });
     }
 
     const { notes, stepNumber: requestedStep } = req.body;
     const stepToProcess = requestedStep ? parseInt(requestedStep) : ticket.currentStep;
+    console.log('Step to process:', stepToProcess);
 
     // Check if user has permission for this step
     const stepConfig = await prisma.stepConfiguration.findUnique({
@@ -278,6 +286,7 @@ router.post('/:id/process', authenticate, upload.single('file'), async (req: Aut
     });
 
     if (!stepConfig || stepConfig.requiredEmployeeRole !== req.user?.employeeRole) {
+      console.log('ERROR: Not authorized. Step requires:', stepConfig?.requiredEmployeeRole, '| User has:', req.user?.employeeRole);
       return res.status(403).json({ error: 'You are not authorized for this step' });
     }
 
@@ -296,22 +305,30 @@ router.post('/:id/process', authenticate, upload.single('file'), async (req: Aut
       parallelStepNumbers = await getParallelSteps(stepConfig.parallelGroup);
     }
 
-    // Check if step was already processed (exclude return notes from check)
-    const existingHistory = ticket.histories.find(
-      h => h.stepNumber === stepToProcess && !h.processorName.includes('[DIKEMBALIKAN]')
-    );
-    if (existingHistory) {
-      return res.status(400).json({ error: 'This step has already been processed' });
-    }
-
     // Delete any return notes for this step before processing
-    await prisma.ticketHistory.deleteMany({
+    const deletedCount = await prisma.ticketHistory.deleteMany({
       where: {
         ticketId: ticket.id,
         stepNumber: stepToProcess,
         processorName: { contains: '[DIKEMBALIKAN]' },
       },
     });
+    console.log('Deleted return notes:', deletedCount.count);
+
+    // Re-check if step was already processed after deleting return notes
+    const actualHistory = await prisma.ticketHistory.findFirst({
+      where: {
+        ticketId: ticket.id,
+        stepNumber: stepToProcess,
+        processorName: { not: { contains: '[DIKEMBALIKAN]' } },
+      },
+    });
+    
+    if (actualHistory) {
+      console.log('ERROR: Step already processed by:', actualHistory.processorName);
+      return res.status(400).json({ error: 'This step has already been processed' });
+    }
+    console.log('Step validation passed, creating new history...');
 
     // File is optional for parallel steps
     const fileUrl = req.file ? `/uploads/${req.file.filename}` : null;
@@ -387,7 +404,10 @@ router.post('/:id/process', authenticate, upload.single('file'), async (req: Aut
     });
 
     res.json(updatedTicket);
+    console.log('=== PROCESS TICKET SUCCESS ===');
   } catch (error) {
+    console.error('=== PROCESS TICKET ERROR ===');
+    console.error(error);
     res.status(500).json({ error: 'Failed to process ticket' });
   }
 });
@@ -580,6 +600,9 @@ router.post('/:id/admin-skip', authenticate, requireRole('admin'), async (req: A
 // Return ticket to previous step (untuk koreksi)
 router.post('/:id/return-to-previous', authenticate, async (req: AuthRequest, res: Response) => {
   try {
+    console.log('=== RETURN TO PREVIOUS START ===');
+    console.log('User:', req.user?.name);
+    
     const ticket = await prisma.ticket.findUnique({
       where: { id: req.params.id },
       include: { 
@@ -592,6 +615,8 @@ router.post('/:id/return-to-previous', authenticate, async (req: AuthRequest, re
     if (!ticket) {
       return res.status(404).json({ error: 'Ticket not found' });
     }
+
+    console.log('Current Step:', ticket.currentStep);
 
     if (ticket.currentStep === 1) {
       return res.status(400).json({ error: 'Cannot return from step 1' });
@@ -614,16 +639,28 @@ router.post('/:id/return-to-previous', authenticate, async (req: AuthRequest, re
       previousStep = applicableSteps[currentIndex - 1].stepNumber;
     }
 
-    // Delete ALL history entries from the current step (in case of parallel steps or duplicates)
-    await prisma.ticketHistory.deleteMany({
+    console.log('Will return from step', ticket.currentStep, 'to step', previousStep);
+
+    // Delete history from current step AND previous step (both need to be redone)
+    const deletedCurrent = await prisma.ticketHistory.deleteMany({
       where: {
         ticketId: ticket.id,
         stepNumber: ticket.currentStep,
       },
     });
+    console.log('Deleted histories from current step', ticket.currentStep, ':', deletedCurrent.count);
 
-    // Create return history entry with note
-    // This will be visible to the person who processes the previous step again
+    const deletedPrevious = await prisma.ticketHistory.deleteMany({
+      where: {
+        ticketId: ticket.id,
+        stepNumber: previousStep,
+        processorName: { not: { contains: '[DIKEMBALIKAN]' } }, // Keep old return notes for reference
+      },
+    });
+    console.log('Deleted histories from previous step', previousStep, ':', deletedPrevious.count);
+
+    // Create return history entry with note at the previous step
+    // This will be visible to the person who will redo the previous step
     await prisma.ticketHistory.create({
       data: {
         ticketId: ticket.id,
@@ -636,6 +673,7 @@ router.post('/:id/return-to-previous', authenticate, async (req: AuthRequest, re
         processedAt: new Date(),
       },
     });
+    console.log('Created return note at step', previousStep);
 
     // Update ticket to previous step
     const updatedTicket = await prisma.ticket.update({
@@ -655,8 +693,11 @@ router.post('/:id/return-to-previous', authenticate, async (req: AuthRequest, re
       },
     });
 
+    console.log('=== RETURN TO PREVIOUS SUCCESS ===');
+    console.log('Ticket now at step:', updatedTicket.currentStep);
     res.json(updatedTicket);
   } catch (error) {
+    console.error('=== RETURN TO PREVIOUS ERROR ===');
     console.error('Return to previous error:', error);
     res.status(500).json({ error: 'Failed to return ticket to previous step' });
   }

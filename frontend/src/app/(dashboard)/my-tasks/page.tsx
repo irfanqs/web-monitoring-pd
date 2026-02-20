@@ -110,7 +110,10 @@ export default function MyTasksPage() {
   };
 
   const handleProcess = async () => {
-    if (!selectedTicket) return;
+    if (!selectedTicket || !selectedStep) {
+      alert('Ticket atau step tidak valid');
+      return;
+    }
     
     // Validate selisih for step 6 (only for LS tickets)
     if (selectedStep === 6 && selectedTicket.isLs && !selisihType) {
@@ -138,15 +141,26 @@ export default function MyTasksPage() {
       await api.post(`/tickets/${selectedTicket.id}/process`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
+      
+      // Close dialog immediately after success
+      const ticketId = selectedTicket.id;
       setSelectedTicket(null);
       setSelectedStep(null);
       setFile(null);
       setNotes('');
       setSelisihType('');
+      
+      // Then refresh data
       fetchTasks();
-      fetchHistory(); // Refresh history after processing
-    } catch (error) {
-      console.error(error);
+      fetchHistory();
+      
+      // Show success message
+      alert('✅ Perjalanan Dinas berhasil diproses!');
+      
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 'Gagal memproses ticket';
+      alert('❌ ' + errorMessage);
+      console.error('Process error:', error);
     } finally {
       setLoading(false);
     }
@@ -368,6 +382,7 @@ export default function MyTasksPage() {
                   <Button 
                     onClick={() => handleOpenProcess(ticket)}
                     className="flex-1"
+                    disabled={loading}
                   >
                     <Upload className="w-4 h-4 mr-2" />
                     Proses PD
@@ -378,6 +393,7 @@ export default function MyTasksPage() {
                       onClick={() => handleOpenReturnDialog(ticket)}
                       variant="destructive"
                       className="flex-1"
+                      disabled={loading || returning}
                     >
                       <RotateCcw className="w-4 h-4 mr-2" />
                       Kembalikan
@@ -488,12 +504,23 @@ export default function MyTasksPage() {
 
       <Dialog
         open={!!selectedTicket}
-        onOpenChange={() => {
-          setSelectedTicket(null);
-          setSelectedStep(null);
+        onOpenChange={(open) => {
+          // Prevent closing dialog while processing
+          if (loading) return;
+          
+          if (!open) {
+            setSelectedTicket(null);
+            setSelectedStep(null);
+            setFile(null);
+            setNotes('');
+            setSelisihType('');
+          }
         }}
       >
-        <DialogContent>
+        <DialogContent onPointerDownOutside={(e) => {
+          // Prevent closing by clicking outside while processing
+          if (loading) e.preventDefault();
+        }}>
           <DialogHeader>
             <DialogTitle>
               Proses {selectedTicket?.ticketNumber} - Step{' '}
@@ -545,9 +572,6 @@ export default function MyTasksPage() {
                         <RotateCcw className="w-5 h-5" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-bold text-red-900 mb-2">
-                          ⚠️ PERJALANAN DINAS DIKEMBALIKAN
-                        </p>
                         <p className="text-sm text-red-800 leading-relaxed whitespace-pre-wrap font-medium">
                           {returnMessage.notes}
                         </p>
@@ -640,6 +664,7 @@ export default function MyTasksPage() {
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
                 accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
                 className="file:pt-1 file:pr-2 file:font-normal file:text-gray-600"
+                disabled={loading}
               />
               <p className="text-xs text-slate-500">
                 Format: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG (Max 10MB)
@@ -652,6 +677,7 @@ export default function MyTasksPage() {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Tambahkan catatan jika diperlukan..."
+                disabled={loading}
               />
             </div>
 

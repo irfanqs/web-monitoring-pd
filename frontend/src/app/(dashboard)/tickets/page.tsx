@@ -58,9 +58,13 @@ interface Ticket {
   assignedPpdUser1?: { id: string; name: string } | null;
   assignedPpdUser2?: { id: string; name: string } | null;
   histories: Array<{
+    id: string;
     stepNumber: number;
     processorName: string;
     processedAt: string;
+    notes?: string;
+    fileUrl?: string;
+    fileName?: string;
   }>;
 }
 
@@ -586,11 +590,31 @@ export default function TicketsPage() {
               <TableBody>
                 {paginatedTickets.map((ticket) => {
                   const currentStepInfo = getCurrentStepInfo(ticket);
+                  // Check if ticket has return message at current step
+                  const hasReturnMessage = ticket.histories.some(
+                    h => h.stepNumber === ticket.currentStep && h.processorName?.includes('[DIKEMBALIKAN]')
+                  );
+                  const returnMessage = ticket.histories.find(
+                    h => h.stepNumber === ticket.currentStep && h.processorName?.includes('[DIKEMBALIKAN]')
+                  );
+                  
                   return (
-                  <TableRow key={ticket.id} className="border-b last:border-b-0">
+                  <TableRow key={ticket.id} className={`border-b last:border-b-0 ${hasReturnMessage ? 'bg-red-50' : ''}`}>
                     <TableCell className="border-r max-w-[300px]">
-                      <div className="truncate" title={ticket.activityName}>
-                        {ticket.activityName}
+                      <div className="space-y-1">
+                        <div className="truncate" title={ticket.activityName}>
+                          {ticket.activityName}
+                        </div>
+                        {hasReturnMessage && returnMessage && (
+                          <div className="flex items-center gap-1 text-xs text-red-700">
+                            <Badge className="bg-red-500 text-white text-xs px-1.5 py-0">
+                              ⚠️ DIKEMBALIKAN
+                            </Badge>
+                            <span className="truncate" title={returnMessage.notes || ''}>
+                              {returnMessage.notes?.substring(0, 50)}...
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell className="border-r whitespace-nowrap">
@@ -620,21 +644,28 @@ export default function TicketsPage() {
                       </span>
                     </TableCell>
                     <TableCell className="border-r">
-                      <Badge
-                        className={
-                          ticket.status === 'completed'
-                            ? 'bg-green-500 hover:bg-green-600 text-white'
+                      <div className="flex flex-col gap-1">
+                        <Badge
+                          className={
+                            ticket.status === 'completed'
+                              ? 'bg-green-500 hover:bg-green-600 text-white'
+                              : ticket.status === 'in_progress'
+                              ? 'bg-blue-500 hover:bg-blue-600 text-white'
+                              : 'bg-yellow-300 hover:bg-amber-300 text-slate-900'
+                          }
+                        >
+                          {ticket.status === 'completed'
+                            ? 'Selesai'
                             : ticket.status === 'in_progress'
-                            ? 'bg-blue-500 hover:bg-blue-600 text-white'
-                            : 'bg-yellow-300 hover:bg-amber-300 text-slate-900'
-                        }
-                      >
-                        {ticket.status === 'completed'
-                          ? 'Selesai'
-                          : ticket.status === 'in_progress'
-                          ? 'Proses'
-                          : 'Pending'}
-                      </Badge>
+                            ? 'Proses'
+                            : 'Pending'}
+                        </Badge>
+                        {hasReturnMessage && (
+                          <Badge className="bg-red-500 text-white text-xs">
+                            Dikembalikan
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
