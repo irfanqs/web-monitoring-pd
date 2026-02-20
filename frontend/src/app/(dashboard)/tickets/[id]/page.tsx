@@ -340,23 +340,10 @@ export default function TicketDetailPage() {
                   return (
                     <div
                       key={history.id}
-                      className={`p-4 rounded-lg space-y-2 ${
-                        isReturnMessage 
-                          ? 'bg-red-50 border-2 border-red-300' 
-                          : 'bg-slate-50'
-                      }`}
+                      className="p-4 bg-slate-50 rounded-lg space-y-2"
                     >
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Badge className={isReturnMessage ? 'bg-red-500' : ''}>
-                            Step {history.stepNumber}
-                          </Badge>
-                          {isReturnMessage && (
-                            <Badge className="bg-red-600 text-white">
-                              DIKEMBALIKAN
-                            </Badge>
-                          )}
-                        </div>
+                        <Badge>Step {history.stepNumber}</Badge>
                         <span className="text-sm text-slate-500">
                           {new Date(history.processedAt).toLocaleString('id-ID')}
                         </span>
@@ -365,10 +352,10 @@ export default function TicketDetailPage() {
                         {stepConfig ? (EMPLOYEE_ROLES[stepConfig.requiredEmployeeRole] || stepConfig.stepName) : `Step ${history.stepNumber}`}
                       </p>
                       <p className="text-sm text-slate-600">
-                        Diproses oleh: {history.processorName.replace('[DIKEMBALIKAN] ', '')}
+                        Diproses oleh: {history.processorName}
                       </p>
                       {history.notes && (
-                        <div className={`text-sm ${isReturnMessage ? 'text-red-800' : 'text-slate-500'}`}>
+                        <div className="text-sm text-slate-500">
                           <span className="font-medium">Catatan:</span>
                           <p className="whitespace-pre-wrap mt-1 leading-relaxed">{history.notes}</p>
                         </div>
