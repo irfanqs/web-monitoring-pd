@@ -61,20 +61,20 @@ Frontend akan berjalan di `http://localhost:3000`
 ### Employee (Pegawai)
 | Username | Password | Name | Role | Step |
 |----------|----------|------|------|------|
-| verifikator | pass123 | Kusmono | Verifikator | 1, 6, 8 |
-| ilhampd | pass123 | Ilham | Petugas Pembuat Rincian Biaya PD | 2, 7 |
-| ratih | pass123 | Ratih | Petugas Pembuat Rincian Biaya PD | 2, 7 |
-| mami | pass123 | Mami | Operator Komitmen | 3 |
-| ospm | pass123 | Operator SPM User | Operator SPM | 4 |
-| op | pass123 | - | Operator Pembayaran | 5 |
-| ospby | pass123 | Operator SPBy User | Operator SPBy | 9 |
-| salma | pass123 | Salma | Bendahara Pengeluaran | 10 |
-| asbari | pass123 | Asbari | Pejabat Pembuat Komitmen | 11 |
-| ppd | pass123 | user1 | Pelaksana Perjalanan Dinas | 12 |
-| ppd2 | pass123 | user2 | Pelaksana Perjalanan Dinas | 12 |
-| putri | pass123 | Putri | Admin Digit Kemenkeu | 13 (Khusus LS) |
-| sutrisno | pass123 | Sutrisno | Kepala Sub Bagian Umum | 14 |
-| ilhamarsip | pass123 | Ilham | Petugas Arsip Berkas PD | 15 |
+| verifikator | verifikator | Kusmono | Verifikator | 1, 6, 8 |
+| ilhampd | ilhampd | Ilham | Petugas Pembuat Rincian Biaya PD | 2, 7 |
+| ratih | ratih | Ratih | Petugas Pembuat Rincian Biaya PD | 2, 7 |
+| mami | mami | Mami | Operator Komitmen | 3 |
+| ospm | ospm | Operator SPM User | Operator SPM | 4 |
+| op | op | - | Operator Pembayaran | 5 |
+| ospby | ospby | Operator SPBy User | Operator SPBy | 9 |
+| salma | salma | Salma | Bendahara Pengeluaran | 10 |
+| asbari | asbari | Asbari | Pejabat Pembuat Komitmen | 11 |
+| ppd | ppd | user1 | Pelaksana Perjalanan Dinas | 12 |
+| ppd2 | ppd2 | user2 | Pelaksana Perjalanan Dinas | 12 |
+| putri | putri | Putri | Admin Digit Kemenkeu | 13 (Khusus LS) |
+| sutrisno | sutrisno | Sutrisno | Kepala Sub Bagian Umum | 14 |
+| ilhamarsip | ilhamarsip | Ilham | Petugas Arsip Berkas PD | 15 |
 
 ## Workflow
 
