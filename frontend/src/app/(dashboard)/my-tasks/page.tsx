@@ -274,7 +274,7 @@ export default function MyTasksPage() {
                       {ticket.ticketNumber}
                       {hasReturnMessage && (
                         <Badge className="bg-red-500 text-white">
-                          ⚠️ DIKEMBALIKAN
+                          DIKEMBALIKAN
                         </Badge>
                       )}
                     </CardTitle>
@@ -297,9 +297,6 @@ export default function MyTasksPage() {
                   );
                   return (
                     <div className="bg-red-50 p-3 rounded-lg border-2 border-red-300">
-                      <p className="text-xs font-bold text-red-900 mb-1">
-                        ⚠️ PERJALANAN DINAS DIKEMBALIKAN
-                      </p>
                       <p className="text-sm text-red-800 leading-relaxed whitespace-pre-wrap line-clamp-2">
                         {returnMsg?.notes}
                       </p>
