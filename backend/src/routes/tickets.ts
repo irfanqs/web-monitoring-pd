@@ -296,11 +296,22 @@ router.post('/:id/process', authenticate, upload.single('file'), async (req: Aut
       parallelStepNumbers = await getParallelSteps(stepConfig.parallelGroup);
     }
 
-    // Check if step was already processed
-    const existingHistory = ticket.histories.find(h => h.stepNumber === stepToProcess);
+    // Check if step was already processed (exclude return notes from check)
+    const existingHistory = ticket.histories.find(
+      h => h.stepNumber === stepToProcess && !h.processorName.includes('[DIKEMBALIKAN]')
+    );
     if (existingHistory) {
       return res.status(400).json({ error: 'This step has already been processed' });
     }
+
+    // Delete any return notes for this step before processing
+    await prisma.ticketHistory.deleteMany({
+      where: {
+        ticketId: ticket.id,
+        stepNumber: stepToProcess,
+        processorName: { contains: '[DIKEMBALIKAN]' },
+      },
+    });
 
     // File is optional for parallel steps
     const fileUrl = req.file ? `/uploads/${req.file.filename}` : null;
@@ -330,10 +341,12 @@ router.post('/:id/process', authenticate, upload.single('file'), async (req: Aut
 
     if (isParallelStep && parallelStepNumbers.length > 0) {
       // For parallel steps, check if all parallel steps in the group are completed
+      // Exclude return notes from count
       const completedParallelSteps = await prisma.ticketHistory.count({
         where: {
           ticketId: ticket.id,
           stepNumber: { in: parallelStepNumbers },
+          processorName: { not: { contains: '[DIKEMBALIKAN]' } },
         },
       });
 
@@ -459,8 +472,24 @@ router.post('/:id/admin-skip', authenticate, requireRole('admin'), async (req: A
     const { stepNumber } = req.body;
     const stepToProcess = stepNumber ? parseInt(stepNumber) : ticket.currentStep;
 
-    // Check if step already processed
-    const existingHistory = ticket.histories.find(h => h.stepNumber === stepToProcess);
+    // Delete any return notes for this step first
+    await prisma.ticketHistory.deleteMany({
+      where: {
+        ticketId: ticket.id,
+        stepNumber: stepToProcess,
+        processorName: { contains: '[DIKEMBALIKAN]' },
+      },
+    });
+
+    // Check if step already processed (after deleting return notes)
+    const existingHistory = await prisma.ticketHistory.findFirst({
+      where: {
+        ticketId: ticket.id,
+        stepNumber: stepToProcess,
+        processorName: { not: { contains: '[DIKEMBALIKAN]' } },
+      },
+    });
+    
     if (existingHistory) {
       return res.status(400).json({ error: 'This step has already been processed' });
     }
@@ -499,10 +528,12 @@ router.post('/:id/admin-skip', authenticate, requireRole('admin'), async (req: A
     }
 
     if (isParallelStep && parallelStepNumbers.length > 0) {
+      // Count again AFTER creating new history (we just created one above)
       const completedParallelSteps = await prisma.ticketHistory.count({
         where: {
           ticketId: ticket.id,
           stepNumber: { in: parallelStepNumbers },
+          processorName: { not: { contains: '[DIKEMBALIKAN]' } }, // Exclude return notes
         },
       });
 
@@ -541,7 +572,8 @@ router.post('/:id/admin-skip', authenticate, requireRole('admin'), async (req: A
 
     res.json(updatedTicket);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to skip step' });
+    console.error('Admin skip error:', error);
+    res.status(500).json({ error: 'Failed to skip step', details: error instanceof Error ? error.message : String(error) });
   }
 });
 
@@ -582,23 +614,25 @@ router.post('/:id/return-to-previous', authenticate, async (req: AuthRequest, re
       previousStep = applicableSteps[currentIndex - 1].stepNumber;
     }
 
-    // Delete the most recent history entry (the one being returned)
-    const lastHistory = ticket.histories[0]; // Already sorted desc
-    if (lastHistory) {
-      await prisma.ticketHistory.delete({
-        where: { id: lastHistory.id },
-      });
-    }
+    // Delete ALL history entries from the current step (in case of parallel steps or duplicates)
+    await prisma.ticketHistory.deleteMany({
+      where: {
+        ticketId: ticket.id,
+        stepNumber: ticket.currentStep,
+      },
+    });
 
-    // Create return history entry with note at the PREVIOUS step
-    // So the person who will redo the step can see the return reason
+    // Create return history entry with note
+    // This will be visible to the person who processes the previous step again
     await prisma.ticketHistory.create({
       data: {
         ticketId: ticket.id,
-        stepNumber: previousStep, // Save at previous step, not current step
+        stepNumber: previousStep,
         processedById: req.user!.id,
-        processorName: req.user!.name,
-        notes: `[DIKEMBALIKAN DARI STEP ${ticket.currentStep}] ${returnNotes}`,
+        processorName: `[DIKEMBALIKAN] ${req.user!.name}`,
+        fileUrl: null,
+        fileName: null,
+        notes: `❌ DIKEMBALIKAN DARI STEP ${ticket.currentStep}\n\nAlasan: ${returnNotes}`,
         processedAt: new Date(),
       },
     });

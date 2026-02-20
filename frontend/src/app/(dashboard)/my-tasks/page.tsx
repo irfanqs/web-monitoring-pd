@@ -260,12 +260,24 @@ export default function MyTasksPage() {
                 const userStep = getUserStepForTicket(ticket);
                 const isParallelStep = ticket.isLs && ticket.currentStep <= 3;
                 
+                // Cek apakah ticket ini pernah dikembalikan di step saat ini
+                const hasReturnMessage = userStep && ticket.histories.some(
+                  h => h.stepNumber === userStep && h.processorName.includes('[DIKEMBALIKAN]')
+                );
+                
                 return (
-                  <Card key={ticket.id}>
+                  <Card key={ticket.id} className={hasReturnMessage ? 'border-2 border-red-400 shadow-lg' : ''}>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>{ticket.ticketNumber}</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                      {ticket.ticketNumber}
+                      {hasReturnMessage && (
+                        <Badge className="bg-red-500 text-white">
+                          ⚠️ DIKEMBALIKAN
+                        </Badge>
+                      )}
+                    </CardTitle>
                     <p className="text-slate-500">{ticket.activityName}</p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -279,6 +291,25 @@ export default function MyTasksPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
+                {hasReturnMessage && (() => {
+                  const returnMsg = ticket.histories.find(
+                    h => h.stepNumber === userStep && h.processorName.includes('[DIKEMBALIKAN]')
+                  );
+                  return (
+                    <div className="bg-red-50 p-3 rounded-lg border-2 border-red-300">
+                      <p className="text-xs font-bold text-red-900 mb-1">
+                        ⚠️ PERJALANAN DINAS DIKEMBALIKAN
+                      </p>
+                      <p className="text-sm text-red-800 leading-relaxed whitespace-pre-wrap line-clamp-2">
+                        {returnMsg?.notes}
+                      </p>
+                      <p className="text-xs text-red-600 mt-1">
+                        Klik "Proses PD" untuk melihat detail dan mengerjakan ulang
+                      </p>
+                    </div>
+                  );
+                })()}
+                
                 <div>
                   <p className="text-sm text-slate-500">No. Surat Tugas</p>
                   <p className="font-medium">{ticket.assignmentLetterNumber}</p>
@@ -502,11 +533,43 @@ export default function MyTasksPage() {
               </div>
             )}
 
+            {/* Pesan Pengembalian - Tampilkan jika ada */}
+            {selectedTicket && selectedStep && (() => {
+              // Cari pesan pengembalian untuk step ini
+              const returnMessage = selectedTicket.histories.find(
+                h => h.stepNumber === selectedStep && h.processorName.includes('[DIKEMBALIKAN]')
+              );
+
+              if (returnMessage) {
+                return (
+                  <div className="bg-red-50 p-4 rounded-lg border-2 border-red-300">
+                    <div className="flex items-start gap-3">
+                      <div className="bg-red-500 text-white rounded-full p-2 mt-0.5">
+                        <RotateCcw className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-red-900 mb-2">
+                          ⚠️ PERJALANAN DINAS DIKEMBALIKAN
+                        </p>
+                        <p className="text-sm text-red-800 leading-relaxed whitespace-pre-wrap font-medium">
+                          {returnMessage.notes}
+                        </p>
+                        <p className="text-xs text-red-600 mt-3 pt-2 border-t border-red-200">
+                          Dikembalikan oleh: {returnMessage.processorName.replace('[DIKEMBALIKAN] ', '')} • {new Date(returnMessage.processedAt).toLocaleString('id-ID')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })()}
+
             {/* Catatan dari Step Sebelumnya */}
             {selectedTicket && selectedStep && selectedStep > 1 && (() => {
               // Cari notes dari step sebelumnya (step terakhir yang diproses)
               const previousHistory = selectedTicket.histories
-                .filter(h => h.stepNumber < selectedStep)
+                .filter(h => h.stepNumber < selectedStep && !h.processorName.includes('[DIKEMBALIKAN]'))
                 .sort((a, b) => b.stepNumber - a.stepNumber)[0];
 
               if (previousHistory?.notes) {
