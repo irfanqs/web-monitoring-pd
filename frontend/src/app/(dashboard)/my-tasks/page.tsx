@@ -93,20 +93,38 @@ export default function MyTasksPage() {
   const getUserStepForTicket = (ticket: Ticket): number | null => {
     if (!user?.employeeRole) return null;
     
-    // For LS tickets with parallel steps (1-3)
-    if (ticket.isLs && ticket.currentStep <= 3) {
-      const userSteps = Object.entries(STEP_ROLES)
-        .filter(([_, role]) => role === user.employeeRole)
-        .map(([step]) => parseInt(step))
-        .filter(step => [1, 2, 3].includes(step));
+    // Get current step config
+    const currentStepConfig = stepConfigs.find(s => s.stepNumber === ticket.currentStep);
+    
+    // Check if current step is parallel
+    if (currentStepConfig?.isParallel && currentStepConfig.parallelGroup) {
+      // Get all steps in this parallel group
+      const parallelGroupSteps = stepConfigs
+        .filter(s => s.isParallel && s.parallelGroup === currentStepConfig.parallelGroup)
+        .map(s => s.stepNumber);
+      
+      // Get user's steps that match their role in this parallel group
+      const userSteps = stepConfigs
+        .filter(s => 
+          s.requiredEmployeeRole === user.employeeRole && 
+          parallelGroupSteps.includes(s.stepNumber)
+        )
+        .map(s => s.stepNumber);
       
       // Find a step that hasn't been completed yet
-      const completedSteps = ticket.histories.map(h => h.stepNumber);
+      const completedSteps = ticket.histories
+        .filter(h => !h.processorName.includes('[DIKEMBALIKAN]'))
+        .map(h => h.stepNumber);
+      
       return userSteps.find(s => !completedSteps.includes(s)) || null;
     }
     
-    // Normal sequential flow
-    return ticket.currentStep;
+    // Normal sequential flow - check if user has permission for current step
+    const hasPermission = stepConfigs.some(
+      s => s.stepNumber === ticket.currentStep && s.requiredEmployeeRole === user.employeeRole
+    );
+    
+    return hasPermission ? ticket.currentStep : null;
   };
 
   const handleProcess = async () => {
@@ -272,7 +290,10 @@ export default function MyTasksPage() {
             <div className="grid gap-4">
               {tickets.map((ticket) => {
                 const userStep = getUserStepForTicket(ticket);
-                const isParallelStep = ticket.isLs && ticket.currentStep <= 3;
+                
+                // Check if current step is parallel based on step config
+                const currentStepConfig = stepConfigs.find(s => s.stepNumber === ticket.currentStep);
+                const isParallelStep = currentStepConfig?.isParallel || false;
                 
                 // Cek apakah ticket ini pernah dikembalikan di step saat ini
                 const hasReturnMessage = userStep && ticket.histories.some(
@@ -549,13 +570,24 @@ export default function MyTasksPage() {
               </p>
             </div>
 
-            {selectedTicket?.isLs && selectedStep && [1, 2, 3].includes(selectedStep) && (
-              <div className="bg-amber-50 p-3 rounded-lg border border-amber-200">
-                <p className="text-sm text-amber-700">
-                  LS: Step 1-3 dapat diproses secara paralel.
-                </p>
-              </div>
-            )}
+            {selectedStep && (() => {
+              const stepConfig = stepConfigs.find(s => s.stepNumber === selectedStep);
+              if (stepConfig?.isParallel && stepConfig.parallelGroup) {
+                const parallelSteps = stepConfigs
+                  .filter(s => s.isParallel && s.parallelGroup === stepConfig.parallelGroup)
+                  .map(s => s.stepNumber)
+                  .sort((a, b) => a - b);
+                
+                return (
+                  <div className="bg-amber-50 p-3 rounded-lg border border-amber-200">
+                    <p className="text-sm text-amber-700">
+                      Step {parallelSteps.join(', ')} dapat diproses secara paralel.
+                    </p>
+                  </div>
+                );
+              }
+              return null;
+            })()}
 
             {/* Pesan Pengembalian - Tampilkan jika ada */}
             {selectedTicket && selectedStep && (() => {

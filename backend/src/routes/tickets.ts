@@ -347,6 +347,7 @@ router.post('/:id/process', authenticate, upload.single('file'), async (req: Aut
         processedAt: new Date(),
       },
     });
+    console.log('Created new history for step', stepToProcess);
 
     // Determine next step
     let nextStep = ticket.currentStep;
@@ -357,8 +358,10 @@ router.post('/:id/process', authenticate, upload.single('file'), async (req: Aut
     const maxStep = await getMaxStep(ticket.isLs);
 
     if (isParallelStep && parallelStepNumbers.length > 0) {
+      console.log('Processing parallel step. Group steps:', parallelStepNumbers);
+      
       // For parallel steps, check if all parallel steps in the group are completed
-      // Exclude return notes from count
+      // Count AFTER inserting the new history
       const completedParallelSteps = await prisma.ticketHistory.count({
         where: {
           ticketId: ticket.id,
@@ -366,6 +369,8 @@ router.post('/:id/process', authenticate, upload.single('file'), async (req: Aut
           processorName: { not: { contains: '[DIKEMBALIKAN]' } },
         },
       });
+      
+      console.log('Completed parallel steps:', completedParallelSteps, '/', parallelStepNumbers.length);
 
       // If all parallel steps are done, move to next non-parallel step
       if (completedParallelSteps >= parallelStepNumbers.length) {
@@ -374,6 +379,9 @@ router.post('/:id/process', authenticate, upload.single('file'), async (req: Aut
         const nextStepConfig = applicableSteps.find(s => s.stepNumber > maxParallelStep);
         nextStep = nextStepConfig ? nextStepConfig.stepNumber : maxStep + 1;
         newStatus = 'in_progress';
+        console.log('All parallel steps completed! Moving to step', nextStep);
+      } else {
+        console.log('Parallel steps not all completed yet, staying at step', ticket.currentStep);
       }
     } else {
       // Normal sequential flow - find next applicable step
@@ -381,10 +389,12 @@ router.post('/:id/process', authenticate, upload.single('file'), async (req: Aut
       if (currentIndex >= 0 && currentIndex < applicableSteps.length - 1) {
         nextStep = applicableSteps[currentIndex + 1].stepNumber;
         newStatus = 'in_progress';
+        console.log('Sequential step completed. Moving to step', nextStep);
       } else {
         // No more steps
         nextStep = maxStep + 1;
         newStatus = 'completed';
+        console.log('All steps completed!');
       }
     }
 
