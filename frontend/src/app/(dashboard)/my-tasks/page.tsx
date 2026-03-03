@@ -62,6 +62,9 @@ export default function MyTasksPage() {
   const [selisihType, setSelisihType] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [stepConfigs, setStepConfigs] = useState<StepConfig[]>([]);
+
+  // Selisih config dari settings
+  const [selisihRules, setSelisihRules] = useState<Array<{ stepNumber: number; role: string; ticketType: 'all' | 'ls' | 'non_ls' }>>([]);
   
   // Return to previous step states
   const [showReturnDialog, setShowReturnDialog] = useState(false);
@@ -83,11 +86,41 @@ export default function MyTasksPage() {
     api.get('/steps').then((res) => setStepConfigs(res.data));
   };
 
+  const fetchSelisihConfig = () => {
+    api.get('/settings').then((res) => {
+      try {
+        const raw = res.data.selisihConfig;
+        if (raw) {
+          setSelisihRules(JSON.parse(raw));
+        } else {
+          // Default fallback: step 6, role VER, hanya LS (perilaku lama)
+          setSelisihRules([{ stepNumber: 6, role: 'VER', ticketType: 'ls' }]);
+        }
+      } catch {
+        setSelisihRules([{ stepNumber: 6, role: 'VER', ticketType: 'ls' }]);
+      }
+    });
+  };
+
   useEffect(() => {
     fetchTasks();
     fetchHistory();
     fetchStepConfigs();
+    fetchSelisihConfig();
   }, []);
+
+  // Helper: cek apakah step + role + tipe tiket harus menampilkan selisih
+  const shouldShowSelisih = (stepNumber: number, ticket: Ticket): boolean => {
+    if (!user?.employeeRole) return false;
+    return selisihRules.some(
+      r =>
+        r.stepNumber === stepNumber &&
+        r.role === user.employeeRole &&
+        (r.ticketType === 'all' ||
+          (r.ticketType === 'ls' && ticket.isLs) ||
+          (r.ticketType === 'non_ls' && !ticket.isLs))
+    );
+  };
 
   // Get the step number this user should process for a ticket
   const getUserStepForTicket = (ticket: Ticket): number | null => {
@@ -133,8 +166,8 @@ export default function MyTasksPage() {
       return;
     }
     
-    // Validate selisih for step 6 (only for LS tickets)
-    if (selectedStep === 6 && selectedTicket.isLs && !selisihType) {
+    // Validate selisih berdasarkan konfigurasi dinamis
+    if (shouldShowSelisih(selectedStep, selectedTicket) && !selisihType) {
       alert('Pilih status selisih anggaran');
       return;
     }
@@ -143,9 +176,9 @@ export default function MyTasksPage() {
     const formData = new FormData();
     if (file) formData.append('file', file);
     
-    // Combine selisih type with notes for step 6 (only for LS tickets)
+    // Combine selisih type with notes berdasarkan konfigurasi dinamis
     let finalNotes = notes;
-    if (selectedStep === 6 && selectedTicket.isLs && selisihType) {
+    if (shouldShowSelisih(selectedStep, selectedTicket) && selisihType) {
       finalNotes = `[${selisihType}]` + (notes ? ` ${notes}` : '');
     }
     formData.append('notes', finalNotes);
@@ -654,7 +687,7 @@ export default function MyTasksPage() {
               return null;
             })()}
 
-            {selectedStep === 6 && selectedTicket?.isLs && (
+            {selectedTicket && selectedStep && shouldShowSelisih(selectedStep, selectedTicket) && (
               <div className="space-y-2">
                 <Label>Selisih Anggaran <span className="text-red-500">*</span></Label>
                 <div className="flex flex-col gap-2">

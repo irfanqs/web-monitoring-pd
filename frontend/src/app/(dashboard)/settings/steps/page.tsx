@@ -188,6 +188,21 @@ export default function StepsSettingsPage() {
 
       <Card>
         <CardContent className="p-6">
+          {/* Legenda warna */}
+          <div className="flex items-center gap-5 mb-4 text-xs text-slate-500">
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block w-3 h-3 rounded-full bg-blue-500" />
+              <span className="bg-blue-50 text-blue-700 border border-blue-200 rounded px-1.5 py-0.5 font-medium">LS Only</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block w-3 h-3 rounded-full bg-orange-400" />
+              <span className="bg-orange-50 text-orange-700 border border-orange-200 rounded px-1.5 py-0.5 font-medium">Non-LS Only</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block w-3 h-3 rounded-full bg-slate-300" />
+              <span className="bg-slate-50 text-slate-600 border border-slate-200 rounded px-1.5 py-0.5 font-medium">Semua Tipe</span>
+            </span>
+          </div>
           <Table>
             <TableHeader>
               <TableRow className="bg-slate-100">
@@ -201,8 +216,30 @@ export default function StepsSettingsPage() {
             </TableHeader>
             <TableBody>
               {steps.map((step, index) => (
-                <TableRow key={step.id}>
-                  <TableCell className="font-medium">{step.stepNumber}</TableCell>
+                <TableRow
+                  key={step.id}
+                  className={
+                    step.isLsOnly
+                      ? 'bg-blue-50/60 hover:bg-blue-100/60'
+                      : step.isNonLsOnly
+                      ? 'bg-orange-50/60 hover:bg-orange-100/60'
+                      : 'hover:bg-slate-50'
+                  }
+                >
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`inline-block w-2 h-full min-h-[20px] rounded-full flex-shrink-0 ${
+                          step.isLsOnly
+                            ? 'bg-blue-500'
+                            : step.isNonLsOnly
+                            ? 'bg-orange-400'
+                            : 'bg-slate-300'
+                        }`}
+                      />
+                      <span className="font-medium">{step.stepNumber}</span>
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <div>
                       <p className="font-medium">{step.stepName}</p>
@@ -214,10 +251,18 @@ export default function StepsSettingsPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
-                      {step.isLsOnly && <Badge className="bg-blue-500 text-xs">LS Only</Badge>}
-                      {step.isNonLsOnly && <Badge className="bg-orange-500 text-xs">Non-LS Only</Badge>}
-                      {step.isParallel && <Badge className="bg-purple-500 text-xs">Paralel</Badge>}
-                      {!step.isLsOnly && !step.isNonLsOnly && <Badge variant="secondary" className="text-xs">Semua</Badge>}
+                      {step.isLsOnly && (
+                        <Badge className="bg-blue-500 text-xs text-white">🏦 LS Only</Badge>
+                      )}
+                      {step.isNonLsOnly && (
+                        <Badge className="bg-orange-500 text-xs text-white">📋 Non-LS Only</Badge>
+                      )}
+                      {step.isParallel && (
+                        <Badge className="bg-purple-500 text-xs text-white">🔀 Paralel</Badge>
+                      )}
+                      {!step.isLsOnly && !step.isNonLsOnly && (
+                        <Badge variant="secondary" className="text-xs">🔄 Semua</Badge>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell>
