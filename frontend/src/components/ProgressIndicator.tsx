@@ -118,35 +118,62 @@ export function ProgressIndicator({
 
   if (compact) {
     return (
-      <div className="flex items-center gap-1">
-        {Array.from({ length: maxStepNumber }, (_, i) => i + 1).map((step) => {
-          const skipped = isStepSkipped(step);
-          const completed = isStepCompleted(step);
-          const isCurrent = isCurrentStep(step);
+      <div className="space-y-2">
+        {/* LS/Non-LS Indicator */}
+        <div className="flex items-center gap-2">
+          <span className={cn(
+            "text-xs font-semibold px-2 py-0.5 rounded",
+            isLs 
+              ? "bg-blue-100 text-blue-700 border border-blue-300" 
+              : "bg-purple-100 text-purple-700 border border-purple-300"
+          )}>
+            {isLs ? '🏦 LS' : '📋 Non-LS'} - {totalApplicableSteps} Steps
+          </span>
+        </div>
+        
+        <div className="flex items-center gap-1">
+          {Array.from({ length: maxStepNumber }, (_, i) => i + 1).map((step) => {
+            const skipped = isStepSkipped(step);
+            const completed = isStepCompleted(step);
+            const isCurrent = isCurrentStep(step);
+            const config = getStepConfig(step);
 
-          return (
-            <div
-              key={step}
-              className={cn(
-                'w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium',
-                skipped
-                  ? 'bg-gray-100 text-gray-400 line-through'
-                  : completed
-                  ? 'bg-green-500 text-white'
-                  : isCurrent
-                  ? 'bg-blue-500 text-white'
-                  : 'bg-gray-200 text-gray-500'
-              )}
-            >
-              {skipped ? '-' : completed ? <Check className="w-3 h-3" /> : step}
+            return (
+              <div
+                key={step}
+                className={cn(
+                  'w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium relative',
+                  skipped
+                    ? 'bg-gray-100 text-gray-400 opacity-30'
+                    : completed
+                    ? isLs 
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-purple-500 text-white'
+                    : isCurrent
+                    ? isLs
+                      ? 'bg-blue-600 text-white ring-2 ring-blue-300'
+                      : 'bg-purple-600 text-white ring-2 ring-purple-300'
+                    : 'bg-gray-200 text-gray-500',
+                  config?.isParallel && 'rounded-sm' // Square for parallel steps
+                )}
+                title={skipped ? 'Tidak berlaku' : config?.stepName}
+              >
+                {skipped ? '−' : completed ? <Check className="w-3 h-3" /> : step}
+                {config?.isParallel && !skipped && (
+                  <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-400 rounded-full border border-white" title="Paralel" />
+                )}
+              </div>
+            );
+          })}
+          {currentStep > maxStepNumber && (
+            <div className={cn(
+              "w-6 h-6 rounded-full flex items-center justify-center",
+              isLs ? "bg-blue-500 text-white" : "bg-purple-500 text-white"
+            )}>
+              <Check className="w-3 h-3" />
             </div>
-          );
-        })}
-        {currentStep > maxStepNumber && (
-          <div className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center">
-            <Check className="w-3 h-3" />
-          </div>
-        )}
+          )}
+        </div>
       </div>
     );
   }
@@ -155,7 +182,26 @@ export function ProgressIndicator({
   const currentConfig = getStepConfig(currentStep);
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-3">
+      {/* Header with LS/Non-LS indicator */}
+      <div className="flex items-center justify-between">
+        <div className={cn(
+          "inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold",
+          isLs 
+            ? "bg-blue-50 text-blue-700 border-2 border-blue-200" 
+            : "bg-purple-50 text-purple-700 border-2 border-purple-200"
+        )}>
+          <span className="text-lg">{isLs ? '🏦' : '📋'}</span>
+          <span>{isLs ? 'Langsung (LS)' : 'Non-LS'}</span>
+          <span className="text-xs opacity-70">• {totalApplicableSteps} steps</span>
+        </div>
+        {parallelInfo && (
+          <div className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-200">
+            🔀 Paralel: {parallelInfo.completedCount}/{parallelInfo.total}
+          </div>
+        )}
+      </div>
+
       <div className="flex items-center gap-1 overflow-x-auto pb-4 pl-2 pt-1">
         {Array.from({ length: maxStepNumber }, (_, i) => i + 1).map((step) => {
           const history = getStepHistory(step);
@@ -168,29 +214,40 @@ export function ProgressIndicator({
             <div key={step} className="flex items-center">
               <div
                 className={cn(
-                  'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium relative group z-0',
+                  'w-10 h-10 flex items-center justify-center text-sm font-medium relative group z-0',
                   skipped
-                    ? 'bg-gray-100 text-gray-400'
+                    ? 'bg-gray-100 text-gray-400 opacity-40 rounded-full'
                     : completed
-                    ? 'bg-green-500 text-white'
+                    ? isLs
+                      ? 'bg-blue-500 text-white rounded-full'
+                      : 'bg-purple-500 text-white rounded-full'
                     : isCurrent
-                    ? 'bg-blue-500 text-white ring-2 ring-blue-300'
-                    : 'bg-gray-200 text-gray-500'
+                    ? isLs
+                      ? 'bg-blue-600 text-white ring-4 ring-blue-200 rounded-full shadow-lg'
+                      : 'bg-purple-600 text-white ring-4 ring-purple-200 rounded-full shadow-lg'
+                    : 'bg-gray-200 text-gray-600 rounded-full',
+                  config?.isParallel && !skipped && 'rounded-lg' // Rounded square for parallel
                 )}
               >
-                {skipped ? '-' : completed ? <Check className="w-4 h-4" /> : step}
+                {skipped ? '−' : completed ? <Check className="w-5 h-5" /> : step}
+                {config?.isParallel && !skipped && (
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full border-2 border-white shadow" title="Step Paralel" />
+                )}
                 {(history || skipped || config) && (
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 hidden group-hover:block z-50 pointer-events-none">
-                    <div className="bg-slate-800 text-white text-xs rounded px-3 py-2 shadow-lg max-w-xs">
+                    <div className="bg-slate-800 text-white text-xs rounded-lg px-3 py-2 shadow-xl max-w-xs">
                       <p className="font-medium whitespace-nowrap">
-                        {config ? (EMPLOYEE_ROLES[config.requiredEmployeeRole] || config.stepName) : `Step ${step}`}
+                        Step {step}: {config ? (EMPLOYEE_ROLES[config.requiredEmployeeRole] || config.stepName) : `Step ${step}`}
                       </p>
+                      {config?.isParallel && <p className="text-amber-300 text-xs">🔀 Paralel</p>}
                       {skipped ? (
-                        <p className="text-slate-300 whitespace-nowrap">Dilewati ({isLs ? 'Non-LS Only' : 'LS Only'})</p>
+                        <p className="text-slate-300 whitespace-nowrap mt-1">
+                          ⊘ Dilewati ({isLs ? 'Non-LS Only' : 'LS Only'})
+                        </p>
                       ) : history ? (
                         <>
-                          <p className="whitespace-nowrap">{history.processorName}</p>
-                          <p className="text-slate-300 whitespace-nowrap">
+                          <p className="whitespace-nowrap mt-1">✓ {history.processorName}</p>
+                          <p className="text-slate-300 whitespace-nowrap text-xs">
                             {new Date(history.processedAt).toLocaleString('id-ID')}
                           </p>
                         </>

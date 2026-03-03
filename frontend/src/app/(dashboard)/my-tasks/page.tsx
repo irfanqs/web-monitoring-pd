@@ -316,11 +316,14 @@ export default function MyTasksPage() {
                     <p className="text-slate-500">{ticket.activityName}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={ticket.isLs ? 'default' : 'secondary'}>
-                      {ticket.isLs ? 'LS' : 'Non-LS'}
+                    <Badge className={ticket.isLs 
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white border-blue-700' 
+                      : 'bg-purple-600 hover:bg-purple-700 text-white border-purple-700'
+                    }>
+                      {ticket.isLs ? '🏦 LS' : '📋 Non-LS'}
                     </Badge>
-                    <Badge>
-                      {isParallelStep ? `Step ${userStep} (Paralel)` : `Step ${ticket.currentStep}`}
+                    <Badge variant="outline" className={ticket.isLs ? 'border-blue-300' : 'border-purple-300'}>
+                      {isParallelStep ? `Step ${userStep} 🔀` : `Step ${ticket.currentStep}`}
                     </Badge>
                   </div>
                 </div>
@@ -453,15 +456,18 @@ export default function MyTasksPage() {
                           <p className="text-slate-500">{ticket.activityName}</p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge variant={ticket.isLs ? 'default' : 'secondary'}>
-                            {ticket.isLs ? 'LS' : 'Non-LS'}
+                          <Badge className={ticket.isLs 
+                            ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                            : 'bg-purple-600 hover:bg-purple-700 text-white'
+                          }>
+                            {ticket.isLs ? '🏦 LS' : '📋 Non-LS'}
                           </Badge>
                           <Badge className={
                             ticket.status === 'completed' 
-                              ? 'bg-green-500' 
-                              : 'bg-blue-500'
+                              ? 'bg-green-500 text-white' 
+                              : 'bg-slate-500 text-white'
                           }>
-                            {ticket.status === 'completed' ? 'Selesai' : 'Dalam Proses'}
+                            {ticket.status === 'completed' ? '✓ Selesai' : '⏳ Dalam Proses'}
                           </Badge>
                         </div>
                       </div>
