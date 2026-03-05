@@ -605,16 +605,6 @@ export default function TicketsPage() {
                         <div className="truncate" title={ticket.activityName}>
                           {ticket.activityName}
                         </div>
-                        {hasReturnMessage && returnMessage && (
-                          <div className="flex items-center gap-1 text-xs text-red-700">
-                            <Badge className="bg-red-500 text-white text-xs px-1.5 py-0">
-                              ⚠️ DIKEMBALIKAN
-                            </Badge>
-                            <span className="truncate" title={returnMessage.notes || ''}>
-                              {returnMessage.notes?.substring(0, 50)}...
-                            </span>
-                          </div>
-                        )}
                       </div>
                     </TableCell>
                     <TableCell className="border-r whitespace-nowrap">
@@ -645,24 +635,25 @@ export default function TicketsPage() {
                     </TableCell>
                     <TableCell className="border-r">
                       <div className="flex flex-col gap-1">
-                        <Badge
-                          className={
-                            ticket.status === 'completed'
-                              ? 'bg-green-500 hover:bg-green-600 text-white'
-                              : ticket.status === 'in_progress'
-                              ? 'bg-blue-500 hover:bg-blue-600 text-white'
-                              : 'bg-yellow-300 hover:bg-amber-300 text-slate-900'
-                          }
-                        >
-                          {ticket.status === 'completed'
-                            ? 'Selesai'
-                            : ticket.status === 'in_progress'
-                            ? 'Proses'
-                            : 'Pending'}
-                        </Badge>
-                        {hasReturnMessage && (
+                        {hasReturnMessage ? (
                           <Badge className="bg-red-500 text-white text-xs">
                             Dikembalikan
+                          </Badge>
+                        ) : (
+                          <Badge
+                            className={
+                              ticket.status === 'completed'
+                                ? 'bg-green-500 hover:bg-green-600 text-white'
+                                : ticket.status === 'in_progress'
+                                ? 'bg-blue-500 hover:bg-blue-600 text-white'
+                                : 'bg-yellow-300 hover:bg-amber-300 text-slate-900'
+                            }
+                          >
+                            {ticket.status === 'completed'
+                              ? 'Selesai'
+                              : ticket.status === 'in_progress'
+                              ? 'Proses'
+                              : 'Pending'}
                           </Badge>
                         )}
                       </div>
