@@ -116,12 +116,19 @@ router.get('/my-tasks', authenticate, async (req: AuthRequest, res: Response) =>
       
       // Normal sequential flow - check if user's step matches current step
       if (stepNumbers.includes(ticket.currentStep) && applicableStepNumbers.includes(ticket.currentStep)) {
-        // Special check for step 12 (PPD) - only show to assigned users
-        if (ticket.currentStep === 12 && (ticket.assignedPpdUserId1 || ticket.assignedPpdUserId2)) {
-          if (ticket.assignedPpdUserId1 === req.user!.id || ticket.assignedPpdUserId2 === req.user!.id) {
+        // Check for PPD step - if ticket has assigned PPD users, only show to them
+        const currentStepCfg = applicableSteps.find(s => s.stepNumber === ticket.currentStep);
+        if (
+          currentStepCfg?.requiredEmployeeRole === 'PPD' &&
+          (ticket.assignedPpdUserId1 || ticket.assignedPpdUserId2)
+        ) {
+          if (
+            ticket.assignedPpdUserId1 === req.user!.id ||
+            ticket.assignedPpdUserId2 === req.user!.id
+          ) {
             return ticket;
           }
-          // If step 12 is assigned to specific users, don't show to other PPD users
+          // Assigned to specific PPD users, don't show to other PPD users
           return null;
         }
         
@@ -290,9 +297,15 @@ router.post('/:id/process', authenticate, upload.single('file'), async (req: Aut
       return res.status(403).json({ error: 'You are not authorized for this step' });
     }
 
-    // Special check for step 12 (PPD) - only assigned user can process
-    if (stepToProcess === 12 && ((ticket as any).assignedPpdUserId1 || (ticket as any).assignedPpdUserId2)) {
-      if ((ticket as any).assignedPpdUserId1 !== req.user!.id && (ticket as any).assignedPpdUserId2 !== req.user!.id) {
+    // Check for PPD step - if ticket has assigned PPD users, only they can process
+    if (
+      stepConfig.requiredEmployeeRole === 'PPD' &&
+      ((ticket as any).assignedPpdUserId1 || (ticket as any).assignedPpdUserId2)
+    ) {
+      if (
+        (ticket as any).assignedPpdUserId1 !== req.user!.id &&
+        (ticket as any).assignedPpdUserId2 !== req.user!.id
+      ) {
         return res.status(403).json({ error: 'This ticket is assigned to another PPD user' });
       }
     }
