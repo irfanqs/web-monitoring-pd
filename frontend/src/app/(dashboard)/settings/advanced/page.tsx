@@ -43,6 +43,7 @@ export default function AdvancedSettingsPage() {
   const [selisihRules, setSelisihRules] = useState<SelisihRule[]>([]);
   const [selisihLoading, setSelisihLoading] = useState(false);
   const [selisihSaved, setSelisihSaved] = useState(false);
+  const [selisihDirty, setSelisihDirty] = useState(false);
 
   // New rule form
   const [newRuleStep, setNewRuleStep] = useState<string>('');
@@ -88,7 +89,14 @@ export default function AdvancedSettingsPage() {
       await api.post('/settings/bulk', {
         selisihConfig: JSON.stringify(selisihRules),
       });
+      // Reload dari server untuk konfirmasi tersimpan
+      const res = await api.get('/settings');
+      try {
+        const raw = res.data.selisihConfig;
+        if (raw) setSelisihRules(JSON.parse(raw));
+      } catch {}
       setSelisihSaved(true);
+      setSelisihDirty(false);
       setTimeout(() => setSelisihSaved(false), 3000);
     } catch (error) {
       console.error(error);
@@ -115,10 +123,12 @@ export default function AdvancedSettingsPage() {
     setNewRuleStep('');
     setNewRuleRole('');
     setNewRuleTicketType('ls');
+    setSelisihDirty(true);
   };
 
   const handleRemoveRule = (index: number) => {
     setSelisihRules(selisihRules.filter((_, i) => i !== index));
+    setSelisihDirty(true);
   };
 
   // Parse template to show preview
@@ -252,7 +262,7 @@ export default function AdvancedSettingsPage() {
                           }
                           variant="outline"
                         >
-                          {rule.ticketType === 'ls' ? '🏦 Hanya LS' : rule.ticketType === 'non_ls' ? '📋 Hanya Non-LS' : '🔄 Semua Tipe'}
+                          {rule.ticketType === 'ls' ? 'Hanya LS' : rule.ticketType === 'non_ls' ? 'Hanya Non-LS' : 'Semua Tipe'}
                         </Badge>
                       </div>
                       <Button
@@ -278,11 +288,6 @@ export default function AdvancedSettingsPage() {
                 <Label className="text-xs text-slate-500">Step</Label>
                 <Select value={newRuleStep} onValueChange={(v) => {
                   setNewRuleStep(v);
-                  // Auto-set tipe tiket sesuai sifat step yang dipilih
-                  const picked = steps.find(s => String(s.stepNumber) === v);
-                  if (picked?.isLsOnly) setNewRuleTicketType('ls');
-                  else if (picked?.isNonLsOnly) setNewRuleTicketType('non_ls');
-                  else setNewRuleTicketType('all');
                 }}>
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih step" />
@@ -365,10 +370,13 @@ export default function AdvancedSettingsPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button onClick={handleSaveSelisih} disabled={selisihLoading}>
+            <Button onClick={handleSaveSelisih} disabled={selisihLoading} className={selisihDirty ? 'ring-2 ring-orange-400' : ''}>
               <Save className="w-4 h-4 mr-2" />
               {selisihLoading ? 'Menyimpan...' : 'Simpan Konfigurasi Selisih'}
             </Button>
+            {selisihDirty && !selisihSaved && (
+              <span className="text-orange-500 text-sm">● Ada perubahan yang belum disimpan</span>
+            )}
             {selisihSaved && <span className="text-green-600 text-sm">Tersimpan!</span>}
           </div>
         </CardContent>

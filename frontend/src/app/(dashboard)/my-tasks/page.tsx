@@ -327,6 +327,9 @@ export default function MyTasksPage() {
                 // Check if current step is parallel based on step config
                 const currentStepConfig = stepConfigs.find(s => s.stepNumber === ticket.currentStep);
                 const isParallelStep = currentStepConfig?.isParallel || false;
+
+                // Jika step paralel dan bagian user sudah selesai (userStep null), sembunyikan card
+                if (isParallelStep && userStep === null) return null;
                 
                 // Cek apakah ticket ini pernah dikembalikan di step saat ini
                 const hasReturnMessage = userStep && ticket.histories.some(
@@ -353,10 +356,10 @@ export default function MyTasksPage() {
                       ? 'bg-blue-600 hover:bg-blue-700 text-white border-blue-700' 
                       : 'bg-purple-600 hover:bg-purple-700 text-white border-purple-700'
                     }>
-                      {ticket.isLs ? '🏦 LS' : '📋 Non-LS'}
+                      {ticket.isLs ? 'LS' : 'Non-LS'}
                     </Badge>
                     <Badge variant="outline" className={ticket.isLs ? 'border-blue-300' : 'border-purple-300'}>
-                      {isParallelStep ? `Step ${userStep} 🔀` : `Step ${ticket.currentStep}`}
+                      {isParallelStep ? `Step ${userStep} (Paralel)` : `Step ${ticket.currentStep}`}
                     </Badge>
                   </div>
                 </div>
