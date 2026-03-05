@@ -140,7 +140,7 @@ export default function TicketDetailPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button size="sm" className="bg-slate-800 text-white hover:bg-slate-700 mr-2" onClick={() => router.push('/tickets')}>
+          <Button size="sm" className="bg-slate-800 text-white hover:bg-slate-700 mr-2" onClick={() => router.back()}>
             <ArrowLeft className="w-4 h-4 " />
           </Button>
           <div>
