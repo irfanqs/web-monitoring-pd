@@ -30,7 +30,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { EMPLOYEE_ROLES } from '@/lib/constants';
-import { Pencil, Trash2, Plus, ArrowUp, ArrowDown } from 'lucide-react';
+import { Pencil, Trash2, Plus, ArrowUp, ArrowDown, Landmark, FileText } from 'lucide-react';
+
+type TabType = 'ls' | 'nonls';
 
 interface StepConfig {
   id: number;
@@ -61,6 +63,7 @@ export default function StepsSettingsPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabType>('ls');
 
   const fetchSteps = () => {
     api.get('/steps').then((res) => setSteps(res.data));
@@ -119,16 +122,25 @@ export default function StepsSettingsPage() {
     }
   };
 
-  const handleMoveUp = async (index: number) => {
-    if (index === 0) return;
-    const newSteps = [...steps];
-    const temp = newSteps[index].stepNumber;
-    newSteps[index].stepNumber = newSteps[index - 1].stepNumber;
-    newSteps[index - 1].stepNumber = temp;
-    
+  const handleMoveUp = async (globalIndex: number, tabSteps: StepConfig[]) => {
+    // Cari posisi step ini di dalam tab
+    const step = steps[globalIndex];
+    const tabIndex = tabSteps.findIndex((s) => s.id === step.id);
+    if (tabIndex <= 0) return;
+
+    // Step sebelumnya di tab (berdasarkan urutan visual)
+    const prevStep = tabSteps[tabIndex - 1];
+
+    // Tukar stepNumber
+    const newSteps = steps.map((s) => {
+      if (s.id === step.id) return { ...s, stepNumber: prevStep.stepNumber };
+      if (s.id === prevStep.id) return { ...s, stepNumber: step.stepNumber };
+      return s;
+    });
+
     try {
       await api.post('/steps/reorder', {
-        steps: newSteps.map(s => ({ id: s.id, stepNumber: s.stepNumber }))
+        steps: newSteps.map((s) => ({ id: s.id, stepNumber: s.stepNumber })),
       });
       fetchSteps();
     } catch (error) {
@@ -136,16 +148,25 @@ export default function StepsSettingsPage() {
     }
   };
 
-  const handleMoveDown = async (index: number) => {
-    if (index === steps.length - 1) return;
-    const newSteps = [...steps];
-    const temp = newSteps[index].stepNumber;
-    newSteps[index].stepNumber = newSteps[index + 1].stepNumber;
-    newSteps[index + 1].stepNumber = temp;
-    
+  const handleMoveDown = async (globalIndex: number, tabSteps: StepConfig[]) => {
+    // Cari posisi step ini di dalam tab
+    const step = steps[globalIndex];
+    const tabIndex = tabSteps.findIndex((s) => s.id === step.id);
+    if (tabIndex < 0 || tabIndex >= tabSteps.length - 1) return;
+
+    // Step berikutnya di tab (berdasarkan urutan visual)
+    const nextStep = tabSteps[tabIndex + 1];
+
+    // Tukar stepNumber
+    const newSteps = steps.map((s) => {
+      if (s.id === step.id) return { ...s, stepNumber: nextStep.stepNumber };
+      if (s.id === nextStep.id) return { ...s, stepNumber: step.stepNumber };
+      return s;
+    });
+
     try {
       await api.post('/steps/reorder', {
-        steps: newSteps.map(s => ({ id: s.id, stepNumber: s.stepNumber }))
+        steps: newSteps.map((s) => ({ id: s.id, stepNumber: s.stepNumber })),
       });
       fetchSteps();
     } catch (error) {
@@ -170,7 +191,106 @@ export default function StepsSettingsPage() {
   const openCreate = () => {
     const maxStep = steps.length > 0 ? Math.max(...steps.map(s => s.stepNumber)) : 0;
     setIsCreating(true);
-    setForm({ ...emptyForm, stepNumber: maxStep + 1 });
+    setForm({
+      ...emptyForm,
+      stepNumber: maxStep + 1,
+      isLsOnly: activeTab === 'ls',
+      isNonLsOnly: activeTab === 'nonls',
+    });
+  };
+
+  // Filter steps berdasarkan tab aktif
+  const lsSteps = steps.filter((s) => s.isLsOnly || (!s.isLsOnly && !s.isNonLsOnly));
+  const nonLsSteps = steps.filter((s) => s.isNonLsOnly || (!s.isLsOnly && !s.isNonLsOnly));
+  const displayedSteps = activeTab === 'ls' ? lsSteps : nonLsSteps;
+
+  const renderStepRow = (step: StepConfig, index: number, allInTab: StepConfig[]) => {
+    const isShared = !step.isLsOnly && !step.isNonLsOnly;
+    const isLs = activeTab === 'ls';
+    const globalIndex = steps.indexOf(step);
+
+    return (
+      <TableRow
+        key={step.id}
+        className={
+          isShared
+            ? 'bg-slate-50/60 hover:bg-slate-100/60'
+            : isLs
+            ? 'bg-blue-50/60 hover:bg-blue-100/60'
+            : 'bg-orange-50/60 hover:bg-orange-100/60'
+        }
+      >
+        <TableCell>
+          <div className="flex items-center gap-2">
+            <span
+              className={`inline-block w-2 min-h-[20px] rounded-full flex-shrink-0 ${
+                isShared
+                  ? 'bg-slate-300'
+                  : isLs
+                  ? 'bg-blue-500'
+                  : 'bg-orange-400'
+              }`}
+            />
+            <span className="font-medium">{step.stepNumber}</span>
+          </div>
+        </TableCell>
+        <TableCell>
+          <div>
+            <p className="font-medium">{step.stepName}</p>
+            <p className="text-xs text-slate-500 truncate max-w-xs">{step.description}</p>
+          </div>
+        </TableCell>
+        <TableCell>
+          <Badge variant="outline">{EMPLOYEE_ROLES[step.requiredEmployeeRole] || step.requiredEmployeeRole}</Badge>
+        </TableCell>
+        <TableCell>
+          <div className="flex flex-wrap gap-1">
+            {step.isLsOnly && (
+              <Badge className="bg-blue-500 text-xs text-white">LS Only</Badge>
+            )}
+            {step.isNonLsOnly && (
+              <Badge className="bg-orange-500 text-xs text-white">Non-LS Only</Badge>
+            )}
+            {step.isParallel && (
+              <Badge className="bg-purple-500 text-xs text-white">Paralel</Badge>
+            )}
+            {isShared && (
+              <Badge variant="secondary" className="text-xs">Semua</Badge>
+            )}
+          </div>
+        </TableCell>
+        <TableCell>
+          <div className="flex gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleMoveUp(globalIndex, allInTab)}
+              disabled={index === 0}
+            >
+              <ArrowUp className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleMoveDown(globalIndex, allInTab)}
+              disabled={index === allInTab.length - 1}
+            >
+              <ArrowDown className="w-4 h-4" />
+            </Button>
+          </div>
+        </TableCell>
+        <TableCell>
+          <div className="flex gap-1">
+            <Button variant="ghost" size="sm" onClick={() => openEdit(step)}>
+              <Pencil className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => handleDelete(step.id)} className="text-red-500">
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        </TableCell>
+      </TableRow>
+    );
   };
 
   return (
@@ -180,32 +300,80 @@ export default function StepsSettingsPage() {
           <h1 className="text-2xl font-bold">Pengaturan Step</h1>
           <p className="text-slate-500">Atur urutan dan konfigurasi step workflow</p>
         </div>
-        <Button onClick={openCreate}>
+        <Button
+          onClick={openCreate}
+          className={activeTab === 'ls' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-orange-500 hover:bg-orange-600'}
+        >
           <Plus className="w-4 h-4 mr-2" />
-          Tambah Step
+          Tambah Step {activeTab === 'ls' ? 'LS' : 'Non-LS'}
         </Button>
       </div>
 
-      <Card>
+      {/* Tab Header */}
+      <div className="flex gap-0 border-b border-slate-200">
+        <button
+          onClick={() => setActiveTab('ls')}
+          className={`flex items-center gap-2 px-6 py-3 text-sm font-semibold border-b-2 transition-colors ${
+            activeTab === 'ls'
+              ? 'border-blue-600 text-blue-700 bg-blue-50'
+              : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+          }`}
+        >
+          <Landmark className="w-4 h-4" />
+          LS
+          <span
+            className={`ml-1 rounded-full px-2 py-0.5 text-xs font-bold ${
+              activeTab === 'ls' ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'
+            }`}
+          >
+            {lsSteps.length}
+          </span>
+        </button>
+        <button
+          onClick={() => setActiveTab('nonls')}
+          className={`flex items-center gap-2 px-6 py-3 text-sm font-semibold border-b-2 transition-colors ${
+            activeTab === 'nonls'
+              ? 'border-orange-500 text-orange-700 bg-orange-50'
+              : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+          }`}
+        >
+          <FileText className="w-4 h-4" />
+          Non-LS
+          <span
+            className={`ml-1 rounded-full px-2 py-0.5 text-xs font-bold ${
+              activeTab === 'nonls' ? 'bg-orange-500 text-white' : 'bg-slate-200 text-slate-600'
+            }`}
+          >
+            {nonLsSteps.length}
+          </span>
+        </button>
+      </div>
+
+      {/* Tab Content */}
+      <Card className={`border-t-4 ${activeTab === 'ls' ? 'border-t-blue-500' : 'border-t-orange-500'}`}>
         <CardContent className="p-6">
           {/* Legenda warna */}
           <div className="flex items-center gap-5 mb-4 text-xs text-slate-500">
-            <span className="flex items-center gap-1.5">
-              <span className="inline-block w-3 h-3 rounded-full bg-blue-500" />
-              <span className="bg-blue-50 text-blue-700 border border-blue-200 rounded px-1.5 py-0.5 font-medium">LS Only</span>
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="inline-block w-3 h-3 rounded-full bg-orange-400" />
-              <span className="bg-orange-50 text-orange-700 border border-orange-200 rounded px-1.5 py-0.5 font-medium">Non-LS Only</span>
-            </span>
+            {activeTab === 'ls' && (
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block w-3 h-3 rounded-full bg-blue-500" />
+                <span className="bg-blue-50 text-blue-700 border border-blue-200 rounded px-1.5 py-0.5 font-medium">LS Only</span>
+              </span>
+            )}
+            {activeTab === 'nonls' && (
+              <span className="flex items-center gap-1.5">
+                <span className="inline-block w-3 h-3 rounded-full bg-orange-400" />
+                <span className="bg-orange-50 text-orange-700 border border-orange-200 rounded px-1.5 py-0.5 font-medium">Non-LS Only</span>
+              </span>
+            )}
             <span className="flex items-center gap-1.5">
               <span className="inline-block w-3 h-3 rounded-full bg-slate-300" />
-              <span className="bg-slate-50 text-slate-600 border border-slate-200 rounded px-1.5 py-0.5 font-medium">Semua Tipe</span>
+              <span className="bg-slate-50 text-slate-600 border border-slate-200 rounded px-1.5 py-0.5 font-medium">Berlaku untuk Semua Tipe</span>
             </span>
           </div>
           <Table>
             <TableHeader>
-              <TableRow className="bg-slate-100">
+              <TableRow className={activeTab === 'ls' ? 'bg-blue-50' : 'bg-orange-50'}>
                 <TableHead className="w-16">No</TableHead>
                 <TableHead>Nama Step</TableHead>
                 <TableHead>Role</TableHead>
@@ -215,88 +383,17 @@ export default function StepsSettingsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {steps.map((step, index) => (
-                <TableRow
-                  key={step.id}
-                  className={
-                    step.isLsOnly
-                      ? 'bg-blue-50/60 hover:bg-blue-100/60'
-                      : step.isNonLsOnly
-                      ? 'bg-orange-50/60 hover:bg-orange-100/60'
-                      : 'hover:bg-slate-50'
-                  }
-                >
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`inline-block w-2 h-full min-h-[20px] rounded-full flex-shrink-0 ${
-                          step.isLsOnly
-                            ? 'bg-blue-500'
-                            : step.isNonLsOnly
-                            ? 'bg-orange-400'
-                            : 'bg-slate-300'
-                        }`}
-                      />
-                      <span className="font-medium">{step.stepNumber}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">{step.stepName}</p>
-                      <p className="text-xs text-slate-500 truncate max-w-xs">{step.description}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{EMPLOYEE_ROLES[step.requiredEmployeeRole] || step.requiredEmployeeRole}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {step.isLsOnly && (
-                        <Badge className="bg-blue-500 text-xs text-white">🏦 LS Only</Badge>
-                      )}
-                      {step.isNonLsOnly && (
-                        <Badge className="bg-orange-500 text-xs text-white">📋 Non-LS Only</Badge>
-                      )}
-                      {step.isParallel && (
-                        <Badge className="bg-purple-500 text-xs text-white">🔀 Paralel</Badge>
-                      )}
-                      {!step.isLsOnly && !step.isNonLsOnly && (
-                        <Badge variant="secondary" className="text-xs">🔄 Semua</Badge>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleMoveUp(index)}
-                        disabled={index === 0}
-                      >
-                        <ArrowUp className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleMoveDown(index)}
-                        disabled={index === steps.length - 1}
-                      >
-                        <ArrowDown className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => openEdit(step)}>
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(step.id)} className="text-red-500">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+              {displayedSteps.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-slate-400 py-10">
+                    Belum ada step untuk tipe ini.
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                displayedSteps.map((step, index) =>
+                  renderStepRow(step, index, displayedSteps)
+                )
+              )}
             </TableBody>
           </Table>
         </CardContent>
