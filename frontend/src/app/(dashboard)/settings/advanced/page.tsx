@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save, Plus, Trash2 } from 'lucide-react';
+import { Save, Plus, Trash2, Loader2, CheckCircle2 } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -43,7 +43,6 @@ export default function AdvancedSettingsPage() {
   const [selisihRules, setSelisihRules] = useState<SelisihRule[]>([]);
   const [selisihLoading, setSelisihLoading] = useState(false);
   const [selisihSaved, setSelisihSaved] = useState(false);
-  const [selisihDirty, setSelisihDirty] = useState(false);
 
   // New rule form
   const [newRuleStep, setNewRuleStep] = useState<string>('');
@@ -57,7 +56,10 @@ export default function AdvancedSettingsPage() {
       try {
         const raw = res.data.selisihConfig;
         if (raw) {
-          setSelisihRules(JSON.parse(raw));
+          const parsed = JSON.parse(raw);
+          setSelisihRules(Array.isArray(parsed) ? parsed : []);
+        } else {
+          setSelisihRules([]);
         }
       } catch {
         setSelisihRules([]);
@@ -82,30 +84,26 @@ export default function AdvancedSettingsPage() {
     }
   };
 
-  const handleSaveSelisih = async () => {
+  // Helper: simpan rules ke DB dan update state
+  const saveRulesToDB = async (rules: SelisihRule[]) => {
     setSelisihLoading(true);
     setSelisihSaved(false);
     try {
       await api.post('/settings/bulk', {
-        selisihConfig: JSON.stringify(selisihRules),
+        selisihConfig: JSON.stringify(rules),
       });
-      // Reload dari server untuk konfirmasi tersimpan
-      const res = await api.get('/settings');
-      try {
-        const raw = res.data.selisihConfig;
-        if (raw) setSelisihRules(JSON.parse(raw));
-      } catch {}
+      setSelisihRules(rules);
       setSelisihSaved(true);
-      setSelisihDirty(false);
-      setTimeout(() => setSelisihSaved(false), 3000);
+      setTimeout(() => setSelisihSaved(false), 2500);
     } catch (error) {
       console.error(error);
+      alert('Gagal menyimpan konfigurasi selisih. Pastikan Anda login sebagai admin.');
     } finally {
       setSelisihLoading(false);
     }
   };
 
-  const handleAddRule = () => {
+  const handleAddRule = async () => {
     if (!newRuleStep || !newRuleRole) {
       alert('Pilih step dan role terlebih dahulu');
       return;
@@ -119,16 +117,17 @@ export default function AdvancedSettingsPage() {
       alert('Kombinasi step, role, dan tipe tiket ini sudah ada');
       return;
     }
-    setSelisihRules([...selisihRules, { stepNumber: stepNum, role: newRuleRole, ticketType: newRuleTicketType }]);
+    const newRules = [...selisihRules, { stepNumber: stepNum, role: newRuleRole, ticketType: newRuleTicketType }];
+    await saveRulesToDB(newRules);
+    // Reset form setelah berhasil
     setNewRuleStep('');
     setNewRuleRole('');
     setNewRuleTicketType('ls');
-    setSelisihDirty(true);
   };
 
-  const handleRemoveRule = (index: number) => {
-    setSelisihRules(selisihRules.filter((_, i) => i !== index));
-    setSelisihDirty(true);
+  const handleRemoveRule = async (index: number) => {
+    const newRules = selisihRules.filter((_, i) => i !== index);
+    await saveRulesToDB(newRules);
   };
 
   // Parse template to show preview
@@ -214,8 +213,8 @@ export default function AdvancedSettingsPage() {
 
           {/* Daftar rule yang sudah ada */}
           {selisihRules.length === 0 ? (
-            <div className="text-sm text-slate-400 italic py-2">
-              Belum ada konfigurasi selisih. Tambahkan rule di bawah.
+            <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
+              ⚠️ Belum ada konfigurasi selisih aktif. Fitur pilihan selisih anggaran <strong>tidak akan muncul</strong> saat memproses tiket. Tambahkan rule di bawah.
             </div>
           ) : (
             <div className="space-y-2">
@@ -269,9 +268,10 @@ export default function AdvancedSettingsPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleRemoveRule(idx)}
+                        disabled={selisihLoading}
                         className="text-red-500 hover:text-red-700 hover:bg-red-50"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        {selisihLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                       </Button>
                     </div>
                   );
@@ -363,21 +363,20 @@ export default function AdvancedSettingsPage() {
               </div>
             </div>
 
-            <Button variant="outline" size="sm" onClick={handleAddRule} className="mt-1">
-              <Plus className="w-4 h-4 mr-2" />
-              Tambah Rule
+            <Button variant="outline" size="sm" onClick={handleAddRule} disabled={selisihLoading} className="mt-1">
+              {selisihLoading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Plus className="w-4 h-4 mr-2" />
+              )}
+              {selisihLoading ? 'Menyimpan...' : 'Tambah Rule'}
             </Button>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Button onClick={handleSaveSelisih} disabled={selisihLoading} className={selisihDirty ? 'ring-2 ring-orange-400' : ''}>
-              <Save className="w-4 h-4 mr-2" />
-              {selisihLoading ? 'Menyimpan...' : 'Simpan Konfigurasi Selisih'}
-            </Button>
-            {selisihDirty && !selisihSaved && (
-              <span className="text-orange-500 text-sm">● Ada perubahan yang belum disimpan</span>
+            {selisihSaved && (
+              <div className="flex items-center gap-1 text-green-600 text-sm mt-2">
+                <CheckCircle2 className="w-4 h-4" />
+                Tersimpan!
+              </div>
             )}
-            {selisihSaved && <span className="text-green-600 text-sm">Tersimpan!</span>}
           </div>
         </CardContent>
       </Card>

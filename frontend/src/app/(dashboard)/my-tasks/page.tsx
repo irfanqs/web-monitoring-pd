@@ -91,13 +91,14 @@ export default function MyTasksPage() {
       try {
         const raw = res.data.selisihConfig;
         if (raw) {
-          setSelisihRules(JSON.parse(raw));
+          const parsed = JSON.parse(raw);
+          // Jika array kosong (belum dikonfigurasi), tidak set apa pun → selisih tidak muncul
+          setSelisihRules(Array.isArray(parsed) ? parsed : []);
         } else {
-          // Default fallback: step 6, role VER, hanya LS (perilaku lama)
-          setSelisihRules([{ stepNumber: 6, role: 'VER', ticketType: 'ls' }]);
+          setSelisihRules([]);
         }
       } catch {
-        setSelisihRules([{ stepNumber: 6, role: 'VER', ticketType: 'ls' }]);
+        setSelisihRules([]);
       }
     });
   };

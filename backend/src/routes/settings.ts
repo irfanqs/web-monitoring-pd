@@ -32,24 +32,10 @@ router.get('/:key', authenticate, async (req: AuthRequest, res: Response) => {
   }
 });
 
-// Update or create setting (admin only)
-router.put('/:key', authenticate, requireRole('admin'), async (req: AuthRequest, res: Response) => {
-  try {
-    const { value } = req.body;
-    const setting = await prisma.appSetting.upsert({
-      where: { key: req.params.key },
-      update: { value },
-      create: { key: req.params.key, value }
-    });
-    res.json(setting);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to update setting' });
-  }
-});
-
 // Bulk update settings (admin only)
 router.post('/bulk', authenticate, requireRole('admin'), async (req: AuthRequest, res: Response) => {
   try {
+    console.log('[POST /settings/bulk] body:', JSON.stringify(req.body));
     const settings = req.body as Record<string, string>;
     const results = await Promise.all(
       Object.entries(settings).map(([key, value]) =>
@@ -63,6 +49,21 @@ router.post('/bulk', authenticate, requireRole('admin'), async (req: AuthRequest
     res.json(results);
   } catch (error) {
     res.status(500).json({ error: 'Failed to update settings' });
+  }
+});
+
+// Update or create setting (admin only)
+router.put('/:key', authenticate, requireRole('admin'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { value } = req.body;
+    const setting = await prisma.appSetting.upsert({
+      where: { key: req.params.key },
+      update: { value },
+      create: { key: req.params.key, value }
+    });
+    res.json(setting);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update setting' });
   }
 });
 
