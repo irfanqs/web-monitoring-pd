@@ -127,7 +127,7 @@ export function ProgressIndicator({
               ? "bg-blue-100 text-blue-700 border border-blue-300" 
               : "bg-purple-100 text-purple-700 border border-purple-300"
           )}>
-            {isLs ? '🏦 LS' : '📋 Non-LS'} - {totalApplicableSteps} Steps
+            {isLs ? 'LS' : 'Non-LS'} - {totalApplicableSteps} Steps
           </span>
         </div>
         
@@ -191,13 +191,12 @@ export function ProgressIndicator({
             ? "bg-blue-50 text-blue-700 border-2 border-blue-200" 
             : "bg-purple-50 text-purple-700 border-2 border-purple-200"
         )}>
-          <span className="text-lg">{isLs ? '🏦' : '📋'}</span>
           <span>{isLs ? 'Langsung (LS)' : 'Non-LS'}</span>
           <span className="text-xs opacity-70">• {totalApplicableSteps} steps</span>
         </div>
         {parallelInfo && (
           <div className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-200">
-            🔀 Paralel: {parallelInfo.completedCount}/{parallelInfo.total}
+            Paralel: {parallelInfo.completedCount}/{parallelInfo.total}
           </div>
         )}
       </div>
@@ -239,14 +238,14 @@ export function ProgressIndicator({
                       <p className="font-medium whitespace-nowrap">
                         Step {step}: {config ? (EMPLOYEE_ROLES[config.requiredEmployeeRole] || config.stepName) : `Step ${step}`}
                       </p>
-                      {config?.isParallel && <p className="text-amber-300 text-xs">🔀 Paralel</p>}
+                      {config?.isParallel && <p className="text-amber-300 text-xs">Paralel</p>}
                       {skipped ? (
                         <p className="text-slate-300 whitespace-nowrap mt-1">
-                          ⊘ Dilewati ({isLs ? 'Non-LS Only' : 'LS Only'})
+                          Dilewati ({isLs ? 'Non-LS Only' : 'LS Only'})
                         </p>
                       ) : history ? (
                         <>
-                          <p className="whitespace-nowrap mt-1">✓ {history.processorName}</p>
+                          <p className="whitespace-nowrap mt-1">{history.processorName}</p>
                           <p className="text-slate-300 whitespace-nowrap text-xs">
                             {new Date(history.processedAt).toLocaleString('id-ID')}
                           </p>
