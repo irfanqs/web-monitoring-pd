@@ -44,6 +44,7 @@ interface Ticket {
 interface StepConfig {
   stepNumber: number;
   stepName: string;
+  description?: string;
   requiredEmployeeRole: string;
   isLsOnly: boolean;
   isNonLsOnly: boolean;
@@ -398,21 +399,12 @@ export default function MyTasksPage() {
                 <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
                   <p className="text-sm text-slate-500 mb-2">Jobdesk Anda (Step {userStep}):</p>
                   <p className="text-slate-700 leading-relaxed">
-                    {userStep === 1 && 'Membuat rekapitulasi biaya perjalanan dinas berdasarkan Surat Tugas dan Nota Dinas Anggaran'}
-                    {userStep === 2 && 'Membuat daftar nominatif biaya perjalanan dinas'}
-                    {userStep === 3 && 'Memasukkan nilai permohonan anggaran biaya ke aplikasi SAKTI'}
-                    {userStep === 4 && 'Mengecek ketersediaan anggaran'}
-                    {userStep === 5 && 'Memasukkan nilai permohonan anggaran biaya ke aplikasi SAKTI'}
-                    {userStep === 6 && 'Memeriksa kelengkapan berkas perjalanan dinas dari pelaksana perjalanan dinas'}
-                    {userStep === 7 && 'Membuat rincian biaya perjalanan dinas'}
-                    {userStep === 8 && 'Memeriksa rincian biaya perjalanan dinas'}
-                    {userStep === 9 && 'Memeriksa rincian biaya perjalanan dinas dibandingkan dengan permohonan anggaran biaya awal apakah ada selisih lebih untuk pengembalian atau tidak'}
-                    {userStep === 10 && 'Menandatangani kuitansi dll berkas perjalanan dinas'}
-                    {userStep === 11 && 'Menandatangani kuitansi dll berkas perjalanan dinas'}
-                    {userStep === 12 && 'Menandatangani kuitansi dll berkas perjalanan dinas'}
-                    {userStep === 13 && 'Melakukan pengembalian selisih kelebihan anggaran ke MPN G3 Modul Penerimaan Negara versi G3'}
-                    {userStep === 14 && 'Menandatangani kuitansi dll berkas perjalanan dinas'}
-                    {userStep === 15 && 'Mengarsipkan kuitansi dll berkas perjalanan dinas'}
+                    {userStep !== null
+                      ? (() => {
+                          const cfg = stepConfigs.find(s => s.stepNumber === userStep);
+                          return cfg?.description || cfg?.stepName || `Step ${userStep}`;
+                        })()
+                      : '-'}
                   </p>
                 </div>
 
