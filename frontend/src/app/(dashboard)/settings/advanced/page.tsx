@@ -33,6 +33,12 @@ interface SelisihRule {
   ticketType: 'all' | 'ls' | 'non_ls'; // semua, hanya LS, hanya Non-LS
 }
 
+// Konfigurasi step mana yang mengisi tanggal terima berkas
+interface ReceivedDateConfig {
+  lsStepNumber: number | null;    // step untuk tiket LS
+  nonLsStepNumber: number | null; // step untuk tiket Non-LS
+}
+
 export default function AdvancedSettingsPage() {
   const [template, setTemplate] = useState('');
   const [loading, setLoading] = useState(false);
@@ -49,6 +55,11 @@ export default function AdvancedSettingsPage() {
   const [newRuleRole, setNewRuleRole] = useState<string>('');
   const [newRuleTicketType, setNewRuleTicketType] = useState<'all' | 'ls' | 'non_ls'>('ls');
 
+  // Received date configuration
+  const [receivedDateConfig, setReceivedDateConfig] = useState<ReceivedDateConfig>({ lsStepNumber: null, nonLsStepNumber: null });
+  const [receivedDateLoading, setReceivedDateLoading] = useState(false);
+  const [receivedDateSaved, setReceivedDateSaved] = useState(false);
+
   useEffect(() => {
     api.get('/settings').then((res) => {
       setTemplate(res.data.letterNumberTemplate || '');
@@ -63,6 +74,19 @@ export default function AdvancedSettingsPage() {
         }
       } catch {
         setSelisihRules([]);
+      }
+      // Parse received date config
+      try {
+        const raw = res.data.receivedDateConfig;
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          setReceivedDateConfig({
+            lsStepNumber: parsed.lsStepNumber ?? null,
+            nonLsStepNumber: parsed.nonLsStepNumber ?? null,
+          });
+        }
+      } catch {
+        setReceivedDateConfig({ lsStepNumber: null, nonLsStepNumber: null });
       }
     });
     api.get('/steps').then((res) => setSteps(res.data));
@@ -81,6 +105,24 @@ export default function AdvancedSettingsPage() {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveReceivedDate = async (updated: ReceivedDateConfig) => {
+    setReceivedDateLoading(true);
+    setReceivedDateSaved(false);
+    try {
+      await api.post('/settings/bulk', {
+        receivedDateConfig: JSON.stringify(updated),
+      });
+      setReceivedDateConfig(updated);
+      setReceivedDateSaved(true);
+      setTimeout(() => setReceivedDateSaved(false), 2500);
+    } catch (error) {
+      console.error(error);
+      alert('Gagal menyimpan konfigurasi tanggal terima berkas.');
+    } finally {
+      setReceivedDateLoading(false);
     }
   };
 
@@ -378,6 +420,106 @@ export default function AdvancedSettingsPage() {
               </div>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Konfigurasi Tanggal Terima Berkas */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Konfigurasi Tanggal Terima Berkas</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <p className="text-sm text-slate-500">
+            Atur pada <strong>step mana</strong> field <span className="font-semibold text-blue-700">Tanggal Terima Berkas</span> akan muncul saat memproses tiket, terpisah untuk tiket <span className="font-semibold text-blue-600">LS</span> dan <span className="font-semibold text-purple-600">Non-LS</span>.
+            Jika tidak dikonfigurasi, field tidak akan muncul.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* LS */}
+            <div className="space-y-2 border rounded-lg p-4 bg-blue-50 border-blue-200">
+              <div className="flex items-center justify-between mb-1">
+                <Label className="font-semibold text-blue-800">Tiket LS</Label>
+                <Badge className="bg-blue-100 text-blue-700 border-blue-200" variant="outline">LS</Badge>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-slate-500">Step yang mengisi tanggal terima berkas</Label>
+                <Select
+                  value={receivedDateConfig.lsStepNumber !== null ? String(receivedDateConfig.lsStepNumber) : '__none__'}
+                  onValueChange={(v) => {
+                    const updated = { ...receivedDateConfig, lsStepNumber: v === '__none__' ? null : parseInt(v) };
+                    handleSaveReceivedDate(updated);
+                  }}
+                  disabled={receivedDateLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tidak dikonfigurasi" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">— Tidak dikonfigurasi —</SelectItem>
+                    {steps.filter(s => !s.isNonLsOnly).map((s) => (
+                      <SelectItem key={s.stepNumber} value={String(s.stepNumber)}>
+                        Step {s.stepNumber} – {s.stepName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {receivedDateConfig.lsStepNumber !== null && (
+                <p className="text-xs text-blue-700 mt-1">
+                  Field tanggal muncul di <strong>Step {receivedDateConfig.lsStepNumber}</strong> untuk tiket LS
+                </p>
+              )}
+            </div>
+
+            {/* Non-LS */}
+            <div className="space-y-2 border rounded-lg p-4 bg-purple-50 border-purple-200">
+              <div className="flex items-center justify-between mb-1">
+                <Label className="font-semibold text-purple-800">Tiket Non-LS</Label>
+                <Badge className="bg-purple-100 text-purple-700 border-purple-200" variant="outline">Non-LS</Badge>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-slate-500">Step yang mengisi tanggal terima berkas</Label>
+                <Select
+                  value={receivedDateConfig.nonLsStepNumber !== null ? String(receivedDateConfig.nonLsStepNumber) : '__none__'}
+                  onValueChange={(v) => {
+                    const updated = { ...receivedDateConfig, nonLsStepNumber: v === '__none__' ? null : parseInt(v) };
+                    handleSaveReceivedDate(updated);
+                  }}
+                  disabled={receivedDateLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tidak dikonfigurasi" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">— Tidak dikonfigurasi —</SelectItem>
+                    {steps.filter(s => !s.isLsOnly).map((s) => (
+                      <SelectItem key={s.stepNumber} value={String(s.stepNumber)}>
+                        Step {s.stepNumber} – {s.stepName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {receivedDateConfig.nonLsStepNumber !== null && (
+                <p className="text-xs text-purple-700 mt-1">
+                  Field tanggal muncul di <strong>Step {receivedDateConfig.nonLsStepNumber}</strong> untuk tiket Non-LS
+                </p>
+              )}
+            </div>
+          </div>
+
+          {receivedDateLoading && (
+            <div className="flex items-center gap-2 text-slate-500 text-sm">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Menyimpan...
+            </div>
+          )}
+          {receivedDateSaved && (
+            <div className="flex items-center gap-1 text-green-600 text-sm">
+              <CheckCircle2 className="w-4 h-4" />
+              Tersimpan!
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

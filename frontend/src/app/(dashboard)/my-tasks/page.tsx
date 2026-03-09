@@ -66,6 +66,10 @@ export default function MyTasksPage() {
 
   // Selisih config dari settings
   const [selisihRules, setSelisihRules] = useState<Array<{ stepNumber: number; role: string; ticketType: 'all' | 'ls' | 'non_ls' }>>([]);
+
+  // Received date config dari settings
+  const [receivedDateConfig, setReceivedDateConfig] = useState<{ lsStepNumber: number | null; nonLsStepNumber: number | null }>({ lsStepNumber: null, nonLsStepNumber: null });
+  const [receivedDate, setReceivedDate] = useState<string>('');
   
   // Return to previous step states
   const [showReturnDialog, setShowReturnDialog] = useState(false);
@@ -101,6 +105,19 @@ export default function MyTasksPage() {
       } catch {
         setSelisihRules([]);
       }
+      // Parse received date config
+      try {
+        const raw = res.data.receivedDateConfig;
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          setReceivedDateConfig({
+            lsStepNumber: parsed.lsStepNumber ?? null,
+            nonLsStepNumber: parsed.nonLsStepNumber ?? null,
+          });
+        }
+      } catch {
+        setReceivedDateConfig({ lsStepNumber: null, nonLsStepNumber: null });
+      }
     });
   };
 
@@ -122,6 +139,15 @@ export default function MyTasksPage() {
           (r.ticketType === 'ls' && ticket.isLs) ||
           (r.ticketType === 'non_ls' && !ticket.isLs))
     );
+  };
+
+  // Helper: cek apakah step ini harus menampilkan field tanggal terima berkas
+  const shouldShowReceivedDate = (stepNumber: number, ticket: Ticket): boolean => {
+    if (ticket.isLs) {
+      return receivedDateConfig.lsStepNumber === stepNumber;
+    } else {
+      return receivedDateConfig.nonLsStepNumber === stepNumber;
+    }
   };
 
   // Get the step number this user should process for a ticket
@@ -174,6 +200,12 @@ export default function MyTasksPage() {
       return;
     }
 
+    // Validate tanggal terima berkas jika dikonfigurasi wajib di step ini
+    if (shouldShowReceivedDate(selectedStep, selectedTicket) && !receivedDate) {
+      alert('Tanggal terima berkas wajib diisi');
+      return;
+    }
+
     setLoading(true);
     const formData = new FormData();
     if (file) formData.append('file', file);
@@ -184,6 +216,11 @@ export default function MyTasksPage() {
       finalNotes = `[${selisihType}]` + (notes ? ` ${notes}` : '');
     }
     formData.append('notes', finalNotes);
+    
+    // Kirim receivedDate jika step ini dikonfigurasi untuk mengisi tanggal terima berkas
+    if (shouldShowReceivedDate(selectedStep, selectedTicket) && receivedDate) {
+      formData.append('receivedDate', receivedDate);
+    }
     
     // For LS parallel steps, include the step number
     if (selectedStep) {
@@ -202,6 +239,7 @@ export default function MyTasksPage() {
       setFile(null);
       setNotes('');
       setSelisihType('');
+      setReceivedDate('');
       
       // Then refresh data
       fetchTasks();
@@ -225,6 +263,7 @@ export default function MyTasksPage() {
     setSelectedStep(step);
     setSelisihType('');
     setNotes('');
+    setReceivedDate('');
   };
 
   const handleDownload = async (
@@ -682,6 +721,20 @@ export default function MyTasksPage() {
               }
               return null;
             })()}
+
+            {selectedTicket && selectedStep && shouldShowReceivedDate(selectedStep, selectedTicket) && (
+              <div className="space-y-2">
+                <Label>Tanggal Terima Berkas <span className="text-red-500">*</span></Label>
+                <Input
+                  type="date"
+                  value={receivedDate}
+                  onChange={(e) => setReceivedDate(e.target.value)}
+                  disabled={loading}
+                  className="w-full"
+                />
+                <p className="text-xs text-slate-500">Isi tanggal saat berkas perjalanan dinas diterima</p>
+              </div>
+            )}
 
             {selectedTicket && selectedStep && shouldShowSelisih(selectedStep, selectedTicket) && (
               <div className="space-y-2">

@@ -53,6 +53,7 @@ interface Ticket {
   currentStep: number;
   status: string;
   startDate: string;
+  receivedDate?: string | null;
   createdAt: string;
   createdBy: { name: string };
   assignedPpdUser1?: { id: string; name: string } | null;
@@ -90,7 +91,6 @@ export default function TicketsPage() {
   const [form, setForm] = useState({
     activityName: '',
     uraian: '',
-    startDate: new Date().toISOString().split('T')[0],
     isLs: '' as '' | 'true' | 'false',
     assignedPpdUserId1: '',
     assignedPpdUserId2: '',
@@ -190,18 +190,20 @@ export default function TicketsPage() {
       );
     }
     
-    // Filter by date
+    // Filter by date (gunakan receivedDate jika ada, fallback ke startDate)
     if (filterDate) {
-      result = result.filter(t => 
-        t.startDate && t.startDate.startsWith(filterDate)
-      );
+      result = result.filter(t => {
+        const dateStr = t.receivedDate || t.startDate;
+        return dateStr && dateStr.startsWith(filterDate);
+      });
     }
     
     // Filter by month (YYYY-MM format)
     if (filterMonth) {
-      result = result.filter(t => 
-        t.startDate && t.startDate.startsWith(filterMonth)
-      );
+      result = result.filter(t => {
+        const dateStr = t.receivedDate || t.startDate;
+        return dateStr && dateStr.startsWith(filterMonth);
+      });
     }
     
     // Sort
@@ -217,14 +219,15 @@ export default function TicketsPage() {
         const cmp = statusOrder[a.status as keyof typeof statusOrder] - statusOrder[b.status as keyof typeof statusOrder];
         return sortOrder === 'asc' ? cmp : -cmp;
       } else if (sortBy === 'month') {
-        // Sort by month (year-month)
-        const monthA = a.startDate ? a.startDate.substring(0, 7) : '';
-        const monthB = b.startDate ? b.startDate.substring(0, 7) : '';
+        const dateStrA = a.receivedDate || a.startDate;
+        const dateStrB = b.receivedDate || b.startDate;
+        const monthA = dateStrA ? dateStrA.substring(0, 7) : '';
+        const monthB = dateStrB ? dateStrB.substring(0, 7) : '';
         const cmp = monthA.localeCompare(monthB);
         return sortOrder === 'asc' ? cmp : -cmp;
       } else {
-        const dateA = new Date(a.startDate || a.createdAt).getTime();
-        const dateB = new Date(b.startDate || b.createdAt).getTime();
+        const dateA = new Date(a.receivedDate || a.startDate || a.createdAt).getTime();
+        const dateB = new Date(b.receivedDate || b.startDate || b.createdAt).getTime();
         return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
       }
     });
@@ -312,12 +315,12 @@ export default function TicketsPage() {
         ...form,
         assignmentLetterNumber: fullLetterNumber,
         isLs: form.isLs === 'true',
+        startDate: new Date().toISOString().split('T')[0], // otomatis tanggal hari ini
       });
       setOpen(false);
       setForm({
         activityName: '',
         uraian: '',
-        startDate: new Date().toISOString().split('T')[0],
         isLs: '',
         assignedPpdUserId1: '',
         assignedPpdUserId2: '',
@@ -427,17 +430,6 @@ export default function TicketsPage() {
                       setForm({ ...form, uraian: e.target.value })
                     }
                     placeholder="Deskripsi tambahan..."
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Tanggal Penerimaan Berkas</Label>
-                  <Input
-                    type="date"
-                    value={form.startDate}
-                    onChange={(e) =>
-                      setForm({ ...form, startDate: e.target.value })
-                    }
-                    required
                   />
                 </div>
                 <div className="space-y-2">
@@ -611,7 +603,10 @@ export default function TicketsPage() {
                       {ticket.assignmentLetterNumber}
                     </TableCell>
                     <TableCell className="border-r whitespace-nowrap">
-                      {new Date(ticket.startDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      {ticket.receivedDate
+                        ? new Date(ticket.receivedDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+                        : <span className="text-slate-400 text-xs italic">Belum diisi</span>
+                      }
                     </TableCell>
                     <TableCell className="border-r">
                       <Badge variant={ticket.isLs ? 'default' : 'secondary'}>

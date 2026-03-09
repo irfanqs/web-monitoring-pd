@@ -30,6 +30,7 @@ interface Ticket {
   assignmentLetterNumber: string;
   uraian?: string;
   startDate: string;
+  receivedDate?: string | null;
   isLs: boolean;
   currentStep: number;
   status: string;
@@ -302,14 +303,18 @@ export default function TicketDetailPage() {
             </div>
             <div>
               <p className="text-sm text-slate-500">Tanggal Penerimaan Berkas</p>
-              <p className="font-medium">
-                {new Date(ticket.startDate).toLocaleDateString('id-ID', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
-              </p>
+              {ticket.receivedDate ? (
+                <p className="font-medium">
+                  {new Date(ticket.receivedDate).toLocaleDateString('id-ID', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}
+                </p>
+              ) : (
+                <p className="text-slate-400 italic text-sm">Belum diisi oleh verifikator</p>
+              )}
             </div>
             <div>
               <p className="text-sm text-slate-500">Dibuat Oleh</p>

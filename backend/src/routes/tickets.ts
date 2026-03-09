@@ -283,7 +283,7 @@ router.post('/:id/process', authenticate, upload.single('file'), async (req: Aut
       return res.status(400).json({ error: 'Ticket already completed' });
     }
 
-    const { notes, stepNumber: requestedStep } = req.body;
+    const { notes, stepNumber: requestedStep, receivedDate } = req.body;
     const stepToProcess = requestedStep ? parseInt(requestedStep) : ticket.currentStep;
     console.log('Step to process:', stepToProcess);
 
@@ -416,6 +416,8 @@ router.post('/:id/process', authenticate, upload.single('file'), async (req: Aut
       data: {
         currentStep: nextStep,
         status: newStatus,
+        // Simpan receivedDate jika dikirim dari step yang dikonfigurasi
+        ...(receivedDate ? { receivedDate: new Date(receivedDate) } : {}),
       },
       include: {
         createdBy: { select: { id: true, name: true } },

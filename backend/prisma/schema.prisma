@@ -59,6 +59,7 @@ model Ticket {
   assignmentLetterNumber String       @map("assignment_letter_number")
   uraian                 String?      // Optional description field
   startDate              DateTime     @map("start_date") // Tanggal mulai perjalanan dinas
+  receivedDate           DateTime?    @map("received_date") // Tanggal terima berkas (diisi oleh verifikator/step terkonfigurasi)
   isLs                   Boolean      @default(false) @map("is_ls")
   currentStep            Int          @default(1) @map("current_step")
   status                 TicketStatus @default(pending)
