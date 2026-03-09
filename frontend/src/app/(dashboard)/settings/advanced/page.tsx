@@ -430,7 +430,7 @@ export default function AdvancedSettingsPage() {
         </CardHeader>
         <CardContent className="space-y-5">
           <p className="text-sm text-slate-500">
-            Atur pada <strong>step mana</strong> field <span className="font-semibold text-blue-700">Tanggal Terima Berkas</span> akan muncul saat memproses tiket, terpisah untuk tiket <span className="font-semibold text-blue-600">LS</span> dan <span className="font-semibold text-purple-600">Non-LS</span>.
+            Atur pada <strong>step mana</strong> field <span className="font-semibold text-blue-700">Tanggal Terima Berkas</span> akan muncul saat memproses tiket, terpisah untuk tiket <span className="font-semibold text-blue-600">LS</span> dan <span className="font-semibold text-orange-600">Non-LS</span>.
             Jika tidak dikonfigurasi, field tidak akan muncul.
           </p>
 
@@ -472,10 +472,10 @@ export default function AdvancedSettingsPage() {
             </div>
 
             {/* Non-LS */}
-            <div className="space-y-2 border rounded-lg p-4 bg-purple-50 border-purple-200">
+            <div className="space-y-2 border rounded-lg p-4 bg-orange-50 border-orange-200">
               <div className="flex items-center justify-between mb-1">
-                <Label className="font-semibold text-purple-800">Tiket Non-LS</Label>
-                <Badge className="bg-purple-100 text-purple-700 border-purple-200" variant="outline">Non-LS</Badge>
+                <Label className="font-semibold text-orange-800">Tiket Non-LS</Label>
+                <Badge className="bg-orange-100 text-orange-700 border-orange-200" variant="outline">Non-LS</Badge>
               </div>
               <div className="space-y-1">
                 <Label className="text-xs text-slate-500">Step yang mengisi tanggal terima berkas</Label>
@@ -501,7 +501,7 @@ export default function AdvancedSettingsPage() {
                 </Select>
               </div>
               {receivedDateConfig.nonLsStepNumber !== null && (
-                <p className="text-xs text-purple-700 mt-1">
+                <p className="text-xs text-orange-700 mt-1">
                   Field tanggal muncul di <strong>Step {receivedDateConfig.nonLsStepNumber}</strong> untuk tiket Non-LS
                 </p>
               )}
