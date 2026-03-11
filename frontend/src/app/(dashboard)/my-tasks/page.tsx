@@ -70,6 +70,10 @@ export default function MyTasksPage() {
   // Received date config dari settings
   const [receivedDateConfig, setReceivedDateConfig] = useState<{ lsStepNumber: number | null; nonLsStepNumber: number | null }>({ lsStepNumber: null, nonLsStepNumber: null });
   const [receivedDate, setReceivedDate] = useState<string>('');
+
+  // Download config dari settings
+  const [downloadStepsLs, setDownloadStepsLs] = useState<number[]>([]);
+  const [downloadStepsNonLs, setDownloadStepsNonLs] = useState<number[]>([]);
   
   // Return to previous step states
   const [showReturnDialog, setShowReturnDialog] = useState(false);
@@ -118,6 +122,18 @@ export default function MyTasksPage() {
       } catch {
         setReceivedDateConfig({ lsStepNumber: null, nonLsStepNumber: null });
       }
+      // Parse download config
+      try {
+        const raw = res.data.downloadConfig;
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          setDownloadStepsLs(Array.isArray(parsed.ls) ? parsed.ls : []);
+          setDownloadStepsNonLs(Array.isArray(parsed.nonLs) ? parsed.nonLs : []);
+        }
+      } catch {
+        setDownloadStepsLs([]);
+        setDownloadStepsNonLs([]);
+      }
     });
   };
 
@@ -139,6 +155,13 @@ export default function MyTasksPage() {
           (r.ticketType === 'ls' && ticket.isLs) ||
           (r.ticketType === 'non_ls' && !ticket.isLs))
     );
+  };
+
+  // Helper: cek apakah step ini diizinkan download file
+  const canDownload = (stepNumber: number | null, ticket: Ticket): boolean => {
+    if (stepNumber === null) return false;
+    if (ticket.isLs) return downloadStepsLs.includes(stepNumber);
+    return downloadStepsNonLs.includes(stepNumber);
   };
 
   // Helper: cek apakah step ini harus menampilkan field tanggal terima berkas
@@ -447,7 +470,7 @@ export default function MyTasksPage() {
                   </p>
                 </div>
 
-                {ticket.histories.filter(h => h.fileUrl).length > 0 && (
+                {ticket.histories.filter(h => h.fileUrl).length > 0 && canDownload(userStep, ticket) && (
                   <div>
                     <p className="text-sm font-medium mb-2">
                       File dari Step Sebelumnya:

@@ -60,6 +60,12 @@ export default function AdvancedSettingsPage() {
   const [receivedDateLoading, setReceivedDateLoading] = useState(false);
   const [receivedDateSaved, setReceivedDateSaved] = useState(false);
 
+  // Download config: step mana yang bisa download file
+  const [downloadStepsLs, setDownloadStepsLs] = useState<number[]>([]);
+  const [downloadStepsNonLs, setDownloadStepsNonLs] = useState<number[]>([]);
+  const [downloadConfigLoading, setDownloadConfigLoading] = useState(false);
+  const [downloadConfigSaved, setDownloadConfigSaved] = useState(false);
+
   useEffect(() => {
     api.get('/settings').then((res) => {
       setTemplate(res.data.letterNumberTemplate || '');
@@ -87,6 +93,18 @@ export default function AdvancedSettingsPage() {
         }
       } catch {
         setReceivedDateConfig({ lsStepNumber: null, nonLsStepNumber: null });
+      }
+      // Parse download config
+      try {
+        const raw = res.data.downloadConfig;
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          setDownloadStepsLs(Array.isArray(parsed.ls) ? parsed.ls : []);
+          setDownloadStepsNonLs(Array.isArray(parsed.nonLs) ? parsed.nonLs : []);
+        }
+      } catch {
+        setDownloadStepsLs([]);
+        setDownloadStepsNonLs([]);
       }
     });
     api.get('/steps').then((res) => setSteps(res.data));
@@ -123,6 +141,33 @@ export default function AdvancedSettingsPage() {
       alert('Gagal menyimpan konfigurasi tanggal terima berkas.');
     } finally {
       setReceivedDateLoading(false);
+    }
+  };
+
+  const handleToggleDownloadStep = async (stepNumber: number, ticketType: 'ls' | 'nonLs') => {
+    const current = ticketType === 'ls' ? downloadStepsLs : downloadStepsNonLs;
+    const updated = current.includes(stepNumber)
+      ? current.filter(s => s !== stepNumber)
+      : [...current, stepNumber].sort((a, b) => a - b);
+
+    const newLs = ticketType === 'ls' ? updated : downloadStepsLs;
+    const newNonLs = ticketType === 'nonLs' ? updated : downloadStepsNonLs;
+
+    setDownloadConfigLoading(true);
+    setDownloadConfigSaved(false);
+    try {
+      await api.post('/settings/bulk', {
+        downloadConfig: JSON.stringify({ ls: newLs, nonLs: newNonLs }),
+      });
+      if (ticketType === 'ls') setDownloadStepsLs(newLs);
+      else setDownloadStepsNonLs(newNonLs);
+      setDownloadConfigSaved(true);
+      setTimeout(() => setDownloadConfigSaved(false), 2500);
+    } catch (error) {
+      console.error(error);
+      alert('Gagal menyimpan konfigurasi download.');
+    } finally {
+      setDownloadConfigLoading(false);
     }
   };
 
@@ -515,6 +560,96 @@ export default function AdvancedSettingsPage() {
             </div>
           )}
           {receivedDateSaved && (
+            <div className="flex items-center gap-1 text-green-600 text-sm">
+              <CheckCircle2 className="w-4 h-4" />
+              Tersimpan!
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Konfigurasi Akses Download File */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Konfigurasi Akses Download File</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <p className="text-sm text-slate-500">
+            Centang step mana saja yang diizinkan melihat dan mendownload file dari step-step sebelumnya saat memproses tiket.
+            Konfigurasi terpisah untuk tiket <span className="font-semibold text-blue-600">LS</span> dan <span className="font-semibold text-orange-600">Non-LS</span>.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* LS */}
+            <div className="border rounded-lg p-4 bg-blue-50 border-blue-200 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-blue-800">Tiket LS</span>
+                <Badge className="bg-blue-100 text-blue-700 border-blue-200" variant="outline">LS</Badge>
+              </div>
+              {steps.filter(s => !s.isNonLsOnly).length === 0 ? (
+                <p className="text-xs text-slate-400 italic">Belum ada step LS</p>
+              ) : (
+                <div className="space-y-2">
+                  {steps.filter(s => !s.isNonLsOnly).map(s => (
+                    <label key={s.stepNumber} className="flex items-center gap-2 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={downloadStepsLs.includes(s.stepNumber)}
+                        onChange={() => handleToggleDownloadStep(s.stepNumber, 'ls')}
+                        disabled={downloadConfigLoading}
+                        className="w-4 h-4 accent-blue-600"
+                      />
+                      <span className="text-sm text-slate-700 group-hover:text-blue-700">
+                        <span className="font-mono text-xs bg-blue-100 text-blue-700 rounded px-1 mr-1">
+                          {s.stepNumber}
+                        </span>
+                        {s.stepName}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Non-LS */}
+            <div className="border rounded-lg p-4 bg-orange-50 border-orange-200 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-orange-800">Tiket Non-LS</span>
+                <Badge className="bg-orange-100 text-orange-700 border-orange-200" variant="outline">Non-LS</Badge>
+              </div>
+              {steps.filter(s => !s.isLsOnly).length === 0 ? (
+                <p className="text-xs text-slate-400 italic">Belum ada step Non-LS</p>
+              ) : (
+                <div className="space-y-2">
+                  {steps.filter(s => !s.isLsOnly).map(s => (
+                    <label key={s.stepNumber} className="flex items-center gap-2 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        checked={downloadStepsNonLs.includes(s.stepNumber)}
+                        onChange={() => handleToggleDownloadStep(s.stepNumber, 'nonLs')}
+                        disabled={downloadConfigLoading}
+                        className="w-4 h-4 accent-orange-600"
+                      />
+                      <span className="text-sm text-slate-700 group-hover:text-orange-700">
+                        <span className="font-mono text-xs bg-orange-100 text-orange-700 rounded px-1 mr-1">
+                          {s.stepNumber}
+                        </span>
+                        {s.stepName}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {downloadConfigLoading && (
+            <div className="flex items-center gap-2 text-slate-500 text-sm">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Menyimpan...
+            </div>
+          )}
+          {downloadConfigSaved && (
             <div className="flex items-center gap-1 text-green-600 text-sm">
               <CheckCircle2 className="w-4 h-4" />
               Tersimpan!
