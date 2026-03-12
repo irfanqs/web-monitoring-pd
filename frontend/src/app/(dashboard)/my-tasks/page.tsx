@@ -406,7 +406,7 @@ export default function MyTasksPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="flex items-center gap-2">
-                      {ticket.ticketNumber}
+                      {ticket.assignmentLetterNumber}
                       {hasReturnMessage && (
                         <Badge className="bg-red-500 text-white">
                           DIKEMBALIKAN
@@ -543,7 +543,7 @@ export default function MyTasksPage() {
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <div>
-                          <CardTitle>{ticket.ticketNumber}</CardTitle>
+                          <CardTitle>{ticket.assignmentLetterNumber}</CardTitle>
                           <p className="text-slate-500">{ticket.activityName}</p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -641,7 +641,7 @@ export default function MyTasksPage() {
         }}>
           <DialogHeader>
             <DialogTitle>
-              Proses {selectedTicket?.ticketNumber} - Step{' '}
+              Proses {selectedTicket?.assignmentLetterNumber} - Step{' '}
               {selectedStep}
             </DialogTitle>
           </DialogHeader>

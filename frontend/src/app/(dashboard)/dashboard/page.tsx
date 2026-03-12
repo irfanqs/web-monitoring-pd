@@ -22,6 +22,7 @@ interface Stats {
     id: string;
     ticketNumber: string;
     activityName: string;
+    assignmentLetterNumber: string;
     currentStep: number;
     status: string;
     isLs: boolean;
@@ -110,7 +111,7 @@ export default function DashboardPage() {
                 className="flex items-center justify-between p-4 bg-slate-50 rounded-lg"
               >
                 <div>
-                  <p className="font-medium">{ticket.ticketNumber}</p>
+                  <p className="font-medium">{ticket.assignmentLetterNumber}</p>
                   <p className="text-sm text-slate-500">{ticket.activityName}</p>
                 </div>
                 <div className="flex items-center gap-4">
