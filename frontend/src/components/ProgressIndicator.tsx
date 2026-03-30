@@ -24,6 +24,7 @@ interface ProgressIndicatorProps {
   compact?: boolean;
   isLs?: boolean;
   stepConfigs?: StepConfig[];
+  getStepPicName?: (stepNumber: number, roleCode?: string) => string;
 }
 
 export function ProgressIndicator({
@@ -32,6 +33,7 @@ export function ProgressIndicator({
   compact = false,
   isLs = false,
   stepConfigs = [],
+  getStepPicName,
 }: ProgressIndicatorProps) {
   // Get applicable steps based on LS/Non-LS
   const applicableSteps = stepConfigs.filter(step => {
@@ -146,9 +148,7 @@ export function ProgressIndicator({
                   skipped
                     ? 'bg-gray-100 text-gray-400 opacity-30'
                     : completed
-                    ? isLs 
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-purple-500 text-white'
+                    ? 'bg-green-500 text-white'
                     : isCurrent
                     ? isLs
                       ? 'bg-blue-600 text-white ring-2 ring-blue-300'
@@ -168,7 +168,7 @@ export function ProgressIndicator({
           {currentStep > maxStepNumber && (
             <div className={cn(
               "w-6 h-6 rounded-full flex items-center justify-center",
-              isLs ? "bg-blue-500 text-white" : "bg-purple-500 text-white"
+              "bg-green-500 text-white"
             )}>
               <Check className="w-3 h-3" />
             </div>
@@ -201,64 +201,81 @@ export function ProgressIndicator({
         )}
       </div>
 
-      <div className="flex items-center gap-1 overflow-x-auto pb-4 pl-2 pt-1">
+  <div className="flex items-start gap-0.5 overflow-x-auto pb-4 pl-2 pt-1">
         {Array.from({ length: maxStepNumber }, (_, i) => i + 1).map((step) => {
           const history = getStepHistory(step);
           const config = getStepConfig(step);
           const skipped = isStepSkipped(step);
           const completed = isStepCompleted(step);
           const isCurrent = isCurrentStep(step);
+          const picLabel = skipped
+            ? '-'
+            : getStepPicName
+            ? getStepPicName(step, config?.requiredEmployeeRole)
+            : history?.processorName || '-';
 
           return (
-            <div key={step} className="flex items-center">
-              <div
-                className={cn(
-                  'w-10 h-10 flex items-center justify-center text-sm font-medium relative group z-0',
-                  skipped
-                    ? 'bg-gray-100 text-gray-400 opacity-40 rounded-full'
-                    : completed
-                    ? isLs
-                      ? 'bg-blue-500 text-white rounded-full'
-                      : 'bg-purple-500 text-white rounded-full'
-                    : isCurrent
-                    ? isLs
-                      ? 'bg-blue-600 text-white ring-4 ring-blue-200 rounded-full shadow-lg'
-                      : 'bg-purple-600 text-white ring-4 ring-purple-200 rounded-full shadow-lg'
-                    : 'bg-gray-200 text-gray-600 rounded-full',
-                  config?.isParallel && !skipped && 'rounded-lg' // Rounded square for parallel
-                )}
-              >
-                {skipped ? '−' : completed ? <Check className="w-5 h-5" /> : step}
-                {config?.isParallel && !skipped && (
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full border-2 border-white shadow" title="Step Paralel" />
-                )}
-                {(history || skipped || config) && (
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 hidden group-hover:block z-50 pointer-events-none">
-                    <div className="bg-slate-800 text-white text-xs rounded-lg px-3 py-2 shadow-xl max-w-xs">
-                      <p className="font-medium whitespace-nowrap">
-                        Step {step}: {config ? (EMPLOYEE_ROLES[config.requiredEmployeeRole] || config.stepName) : `Step ${step}`}
-                      </p>
-                      {config?.isParallel && <p className="text-amber-300 text-xs">Paralel</p>}
-                      {skipped ? (
-                        <p className="text-slate-300 whitespace-nowrap mt-1">
-                          Dilewati ({isLs ? 'Non-LS Only' : 'LS Only'})
+            <div key={step} className="flex items-start">
+              <div className="w-[72px] flex flex-col items-center text-center">
+                <div
+                  className={cn(
+                    'w-10 h-10 flex items-center justify-center text-sm font-medium relative group z-0',
+                    skipped
+                      ? 'bg-gray-100 text-gray-400 opacity-40 rounded-full'
+                      : completed
+                      ? 'bg-green-500 text-white rounded-full'
+                      : isCurrent
+                      ? isLs
+                        ? 'bg-blue-600 text-white ring-4 ring-blue-200 rounded-full shadow-lg'
+                        : 'bg-purple-600 text-white ring-4 ring-purple-200 rounded-full shadow-lg'
+                      : 'bg-gray-200 text-gray-600 rounded-full',
+                    config?.isParallel && !skipped && 'rounded-lg' // Rounded square for parallel
+                  )}
+                >
+                  {skipped ? '−' : completed ? <Check className="w-5 h-5" /> : step}
+                  {config?.isParallel && !skipped && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-amber-400 rounded-full border-2 border-white shadow" title="Step Paralel" />
+                  )}
+                  {(history || skipped || config) && (
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 hidden group-hover:block z-50 pointer-events-none">
+                      <div className="bg-slate-800 text-white text-xs rounded-lg px-3 py-2 shadow-xl max-w-xs">
+                        <p className="font-medium whitespace-nowrap">
+                          Step {step}
                         </p>
-                      ) : history ? (
-                        <>
-                          <p className="whitespace-nowrap mt-1">{history.processorName}</p>
-                          <p className="text-slate-300 whitespace-nowrap text-xs">
-                            {new Date(history.processedAt).toLocaleString('id-ID')}
+                        {config?.isParallel && <p className="text-amber-300 text-xs">Paralel</p>}
+                        {skipped ? (
+                          <p className="text-slate-300 whitespace-nowrap mt-1">
+                            Dilewati ({isLs ? 'Non-LS Only' : 'LS Only'})
                           </p>
-                        </>
-                      ) : null}
+                        ) : (
+                          <>
+                            <p className="whitespace-nowrap mt-1">{picLabel}</p>
+                            {history && (
+                              <p className="text-slate-300 whitespace-nowrap text-xs">
+                                {new Date(history.processedAt).toLocaleString('id-ID')}
+                              </p>
+                            )}
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
+                <p
+                  className={cn(
+                    'mt-2 text-[9px] leading-tight px-1 min-h-[24px] line-clamp-2',
+                    skipped ? 'text-gray-400' : 'text-slate-600',
+                    isCurrent && !skipped && 'font-semibold text-slate-800'
+                  )}
+                  title={picLabel}
+                >
+                  {picLabel}
+                </p>
               </div>
               {step < maxStepNumber && (
                 <div
                   className={cn(
-                    'w-4 h-1',
+                    'w-2 h-1 mt-[18px]',
                     skipped || isStepSkipped(step + 1)
                       ? 'bg-gray-100'
                       : completed
@@ -276,7 +293,7 @@ export function ProgressIndicator({
           ? 'Selesai' 
           : parallelInfo
           ? `Step ${parallelInfo.parallelSteps.join(', ')} (Paralel) - ${parallelInfo.completedCount}/${parallelInfo.total} selesai`
-          : `Step ${currentStep} dari ${totalApplicableSteps} - ${currentConfig ? (EMPLOYEE_ROLES[currentConfig.requiredEmployeeRole] || currentConfig.stepName) : ''}`
+          : `Step ${currentStep} dari ${maxStepNumber} - ${currentConfig ? (EMPLOYEE_ROLES[currentConfig.requiredEmployeeRole] || currentConfig.stepName) : ''}`
         }
       </p>
     </div>

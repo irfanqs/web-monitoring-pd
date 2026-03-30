@@ -176,6 +176,9 @@ export default function TicketDetailPage() {
             histories={ticket.histories}
             isLs={ticket.isLs}
             stepConfigs={stepConfigs}
+            getStepPicName={(stepNumber, roleCode) =>
+              roleCode ? getPicNames(roleCode, stepNumber) : '-'
+            }
           />
         </CardContent>
       </Card>
