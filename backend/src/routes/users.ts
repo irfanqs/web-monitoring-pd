@@ -5,8 +5,8 @@ import { authenticate, requireRole, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 
-// Get all users (Admin only)
-router.get('/', authenticate, requireRole('admin'), async (req: AuthRequest, res: Response) => {
+// Get all users (Admin & Supervisor)
+router.get('/', authenticate, requireRole('admin', 'supervisor'), async (req: AuthRequest, res: Response) => {
   try {
     const users = await prisma.user.findMany({
       select: {

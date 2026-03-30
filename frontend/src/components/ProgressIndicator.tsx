@@ -133,35 +133,51 @@ export function ProgressIndicator({
           </span>
         </div>
         
-        <div className="flex items-center gap-1">
+        <div className="flex items-start gap-0.5 overflow-x-auto">
           {Array.from({ length: maxStepNumber }, (_, i) => i + 1).map((step) => {
+            const history = getStepHistory(step);
             const skipped = isStepSkipped(step);
             const completed = isStepCompleted(step);
             const isCurrent = isCurrentStep(step);
             const config = getStepConfig(step);
+            const picLabel = skipped
+              ? '-'
+              : getStepPicName
+              ? getStepPicName(step, config?.requiredEmployeeRole)
+              : history?.processorName || '-';
 
             return (
-              <div
-                key={step}
-                className={cn(
-                  'w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium relative',
-                  skipped
-                    ? 'bg-gray-100 text-gray-400 opacity-30'
-                    : completed
-                    ? 'bg-green-500 text-white'
-                    : isCurrent
-                    ? isLs
-                      ? 'bg-blue-600 text-white ring-2 ring-blue-300'
-                      : 'bg-purple-600 text-white ring-2 ring-purple-300'
-                    : 'bg-gray-200 text-gray-500',
-                  config?.isParallel && 'rounded-sm' // Square for parallel steps
-                )}
-                title={skipped ? 'Tidak berlaku' : config?.stepName}
-              >
-                {skipped ? '−' : completed ? <Check className="w-3 h-3" /> : step}
-                {config?.isParallel && !skipped && (
-                  <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-400 rounded-full border border-white" title="Paralel" />
-                )}
+              <div key={step} className="w-[56px] flex flex-col items-center text-center">
+                <div
+                  className={cn(
+                    'w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium relative',
+                    skipped
+                      ? 'bg-gray-100 text-gray-400 opacity-30'
+                      : completed
+                      ? 'bg-green-500 text-white'
+                      : isCurrent
+                      ? isLs
+                        ? 'bg-blue-600 text-white ring-2 ring-blue-300'
+                        : 'bg-purple-600 text-white ring-2 ring-purple-300'
+                      : 'bg-gray-200 text-gray-500',
+                    config?.isParallel && 'rounded-sm' // Square for parallel steps
+                  )}
+                  title={skipped ? 'Tidak berlaku' : config?.stepName}
+                >
+                  {skipped ? '−' : completed ? <Check className="w-3 h-3" /> : step}
+                  {config?.isParallel && !skipped && (
+                    <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-400 rounded-full border border-white" title="Paralel" />
+                  )}
+                </div>
+                <p
+                  className={cn(
+                    'mt-1 text-[8px] leading-tight line-clamp-2 min-h-[18px]',
+                    skipped ? 'text-gray-300' : 'text-slate-600'
+                  )}
+                  title={picLabel}
+                >
+                  {picLabel}
+                </p>
               </div>
             );
           })}
