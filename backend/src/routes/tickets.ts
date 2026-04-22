@@ -6,6 +6,11 @@ import path from 'path';
 
 const router = Router();
 
+const MAX_ACTIVITY_NAME_LENGTH = 250;
+
+const normalizeSingleLineText = (value: unknown) =>
+  typeof value === 'string' ? value.replace(/\s+/g, ' ').trim() : '';
+
 // Helper function to get step configurations
 async function getStepConfigs(isLs: boolean) {
   const allSteps = await prisma.stepConfiguration.findMany({
@@ -208,6 +213,33 @@ router.get('/:id', authenticate, async (req: AuthRequest, res: Response) => {
 router.post('/', authenticate, requireRole('admin'), async (req: AuthRequest, res: Response) => {
   try {
     const { activityName, assignmentLetterNumber, uraian, isLs, startDate, assignedPpdUserId1, assignedPpdUserId2 } = req.body;
+    const cleanActivityName = normalizeSingleLineText(activityName);
+    const cleanAssignmentLetterNumber = normalizeSingleLineText(assignmentLetterNumber);
+    const cleanUraian = typeof uraian === 'string' ? uraian.trim() : null;
+
+    if (!cleanActivityName) {
+      return res.status(400).json({ error: 'Nama kegiatan wajib diisi' });
+    }
+
+    if (cleanActivityName.length > MAX_ACTIVITY_NAME_LENGTH) {
+      return res.status(400).json({
+        error: `Nama kegiatan maksimal ${MAX_ACTIVITY_NAME_LENGTH} karakter`,
+      });
+    }
+
+    if (!cleanAssignmentLetterNumber) {
+      return res.status(400).json({ error: 'Nomor surat tugas wajib diisi' });
+    }
+
+    if (
+      assignedPpdUserId1 &&
+      assignedPpdUserId2 &&
+      assignedPpdUserId1 === assignedPpdUserId2
+    ) {
+      return res.status(400).json({
+        error: 'Pelaksana Perjalanan Dinas 1 dan 2 harus berbeda',
+      });
+    }
 
     // Use startDate year for ticket number, default to current date if not provided
     const ticketStartDate = startDate ? new Date(startDate) : new Date();
@@ -241,9 +273,9 @@ router.post('/', authenticate, requireRole('admin'), async (req: AuthRequest, re
     const ticket = await prisma.ticket.create({
       data: {
         ticketNumber,
-        activityName,
-        assignmentLetterNumber,
-        uraian: uraian || null,
+        activityName: cleanActivityName,
+        assignmentLetterNumber: cleanAssignmentLetterNumber,
+        uraian: cleanUraian || null,
         startDate: ticketStartDate,
         isLs: isLs || false,
         currentStep: startStep,
