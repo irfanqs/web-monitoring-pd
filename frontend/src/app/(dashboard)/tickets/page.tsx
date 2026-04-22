@@ -304,6 +304,27 @@ export default function TicketsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const cleanActivityName = form.activityName.replace(/\s+/g, ' ').trim();
+
+    if (!cleanActivityName) {
+      alert('Nama kegiatan wajib diisi');
+      return;
+    }
+
+    if (cleanActivityName.length > 250) {
+      alert('Nama kegiatan maksimal 250 karakter');
+      return;
+    }
+
+    if (
+      form.assignedPpdUserId1 &&
+      form.assignedPpdUserId2 &&
+      form.assignedPpdUserId1 === form.assignedPpdUserId2
+    ) {
+      alert('Pelaksana Perjalanan Dinas 1 dan 2 harus berbeda');
+      return;
+    }
+
     if (form.isLs === '') {
       alert('Pilih jenis PD (LS atau Non-LS)');
       return;
@@ -313,6 +334,8 @@ export default function TicketsPage() {
       const fullLetterNumber = buildLetterNumber();
       await api.post('/tickets', {
         ...form,
+        activityName: cleanActivityName,
+        uraian: form.uraian.trim(),
         assignmentLetterNumber: fullLetterNumber,
         isLs: form.isLs === 'true',
         startDate: new Date().toISOString().split('T')[0], // otomatis tanggal hari ini
@@ -377,9 +400,10 @@ export default function TicketsPage() {
                   <Input
                     value={form.activityName}
                     onChange={(e) =>
-                      setForm({ ...form, activityName: e.target.value })
+                      setForm((prev) => ({ ...prev, activityName: e.target.value }))
                     }
                     placeholder="Nama kegiatan..."
+                    maxLength={250}
                     required
                   />
                 </div>
