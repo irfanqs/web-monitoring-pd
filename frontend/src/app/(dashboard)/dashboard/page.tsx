@@ -158,7 +158,7 @@ export default function DashboardPage() {
                 >
                   <div>
                     <p className="font-medium">{ticket.assignmentLetterNumber}</p>
-                    <p className="text-sm text-slate-500">{ticket.activityName}</p>
+                    <p className="text-sm text-slate-500">{ticket.activityName.replace(/\s+/g, ' ').trim()}</p>
                   </div>
                   <div className="flex items-center gap-4">
                     <span className="text-sm text-slate-500">

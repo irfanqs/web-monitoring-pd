@@ -145,7 +145,7 @@ export default function TicketDetailPage() {
             <ArrowLeft className="w-4 h-4 " />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold break-words line-clamp-4" title={ticket.activityName}>{ticket.activityName}</h1>
+            <h1 className="text-2xl font-bold break-words line-clamp-4" title={ticket.activityName}>{ticket.activityName.replace(/\s+/g, ' ').trim()}</h1>
             <p className="text-slate-500">{ticket.assignmentLetterNumber}</p>
           </div>
         </div>

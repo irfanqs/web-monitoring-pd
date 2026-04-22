@@ -413,7 +413,7 @@ export default function MyTasksPage() {
                         </Badge>
                       )}
                     </CardTitle>
-                    <p className="text-slate-500">{ticket.activityName}</p>
+                    <p className="text-slate-500">{ticket.activityName.replace(/\s+/g, ' ').trim()}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge className={ticket.isLs 
@@ -544,7 +544,7 @@ export default function MyTasksPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <CardTitle>{ticket.assignmentLetterNumber}</CardTitle>
-                          <p className="text-slate-500">{ticket.activityName}</p>
+                          <p className="text-slate-500">{ticket.activityName.replace(/\s+/g, ' ').trim()}</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge className={ticket.isLs 
@@ -861,7 +861,7 @@ export default function MyTasksPage() {
                   <strong>Nomor PD:</strong> {returnTicket.ticketNumber}
                 </p>
                 <p className="text-sm text-slate-600 mt-1">
-                  <strong>Aktivitas:</strong> {returnTicket.activityName}
+                  <strong>Aktivitas:</strong> {returnTicket.activityName.replace(/\s+/g, ' ').trim()}
                 </p>
                 <p className="text-sm text-slate-600 mt-1">
                   <strong>Step Saat Ini:</strong> {returnTicket.currentStep}

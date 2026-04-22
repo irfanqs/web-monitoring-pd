@@ -262,7 +262,7 @@ export default function TicketsPage() {
       const stepInfo = getCurrentStepInfo(ticket);
       return {
         ticketNumber: ticket.ticketNumber,
-        activityName: ticket.activityName,
+        activityName: ticket.activityName.replace(/\s+/g, ' ').trim(),
         assignmentLetterNumber: ticket.assignmentLetterNumber,
         startDate: ticket.startDate,
         isLs: ticket.isLs,
@@ -281,7 +281,7 @@ export default function TicketsPage() {
       const stepInfo = getCurrentStepInfo(ticket);
       return {
         ticketNumber: ticket.ticketNumber,
-        activityName: ticket.activityName,
+        activityName: ticket.activityName.replace(/\s+/g, ' ').trim(),
         assignmentLetterNumber: ticket.assignmentLetterNumber,
         startDate: ticket.startDate,
         isLs: ticket.isLs,
@@ -304,6 +304,7 @@ export default function TicketsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Normalize whitespace: replace all whitespace characters (including newlines, tabs) with single space
     const cleanActivityName = form.activityName.replace(/\s+/g, ' ').trim();
 
     if (!cleanActivityName) {
@@ -399,9 +400,11 @@ export default function TicketsPage() {
                   <Label>Nama Kegiatan</Label>
                   <Input
                     value={form.activityName}
-                    onChange={(e) =>
-                      setForm((prev) => ({ ...prev, activityName: e.target.value }))
-                    }
+                    onChange={(e) => {
+                      // Normalize whitespace in real-time to prevent newlines and multiple spaces
+                      const normalized = e.target.value.replace(/\s+/g, ' ');
+                      setForm((prev) => ({ ...prev, activityName: normalized }));
+                    }}
                     placeholder="Nama kegiatan..."
                     maxLength={250}
                     required
@@ -450,9 +453,11 @@ export default function TicketsPage() {
                   <Label>Uraian (Opsional)</Label>
                   <Input
                     value={form.uraian}
-                    onChange={(e) =>
-                      setForm({ ...form, uraian: e.target.value })
-                    }
+                    onChange={(e) => {
+                      // Normalize whitespace to prevent issues
+                      const normalized = e.target.value.replace(/\s+/g, ' ');
+                      setForm({ ...form, uraian: normalized });
+                    }}
                     placeholder="Deskripsi tambahan..."
                   />
                 </div>
@@ -619,7 +624,7 @@ export default function TicketsPage() {
                     <TableCell className="border-r max-w-[300px]">
                       <div className="space-y-1">
                         <div className="truncate" title={ticket.activityName}>
-                          {ticket.activityName}
+                          {ticket.activityName.replace(/\s+/g, ' ').trim()}
                         </div>
                       </div>
                     </TableCell>

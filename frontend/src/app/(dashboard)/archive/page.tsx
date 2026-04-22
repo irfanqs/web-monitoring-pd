@@ -208,7 +208,7 @@ export default function ArchivePage() {
   const handleExportExcel = () => {
     const exportData = filteredTickets.map(ticket => ({
       ticketNumber: ticket.ticketNumber,
-      activityName: ticket.activityName,
+      activityName: ticket.activityName.replace(/\s+/g, ' ').trim(),
       assignmentLetterNumber: ticket.assignmentLetterNumber,
       startDate: ticket.startDate,
       isLs: ticket.isLs,
@@ -224,7 +224,7 @@ export default function ArchivePage() {
   const handleExportPDF = () => {
     const exportData = filteredTickets.map(ticket => ({
       ticketNumber: ticket.ticketNumber,
-      activityName: ticket.activityName,
+      activityName: ticket.activityName.replace(/\s+/g, ' ').trim(),
       assignmentLetterNumber: ticket.assignmentLetterNumber,
       startDate: ticket.startDate,
       isLs: ticket.isLs,
@@ -382,7 +382,7 @@ export default function ArchivePage() {
                     <TableRow key={ticket.id} className="border-b last:border-b-0">
                       <TableCell className="border-r max-w-[300px]">
                         <div className="truncate" title={ticket.activityName}>
-                          {ticket.activityName}
+                          {ticket.activityName.replace(/\s+/g, ' ').trim()}
                         </div>
                       </TableCell>
                       <TableCell className="border-r whitespace-nowrap">
