@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Save, Plus, Trash2, Loader2, CheckCircle2 } from 'lucide-react';
+import { Save, Plus, Trash2, Loader2, CheckCircle2, Tags } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -66,6 +66,12 @@ export default function AdvancedSettingsPage() {
   const [downloadConfigLoading, setDownloadConfigLoading] = useState(false);
   const [downloadConfigSaved, setDownloadConfigSaved] = useState(false);
 
+  // Role labels (penggantian nama role)
+  const [roleLabels, setRoleLabels] = useState<Record<string, string>>({});
+  const [roleLabelsDraft, setRoleLabelsDraft] = useState<Record<string, string>>({});
+  const [roleLabelsLoading, setRoleLabelsLoading] = useState(false);
+  const [roleLabelsSaved, setRoleLabelsSaved] = useState(false);
+
   useEffect(() => {
     api.get('/settings').then((res) => {
       setTemplate(res.data.letterNumberTemplate || '');
@@ -105,6 +111,19 @@ export default function AdvancedSettingsPage() {
       } catch {
         setDownloadStepsLs([]);
         setDownloadStepsNonLs([]);
+      }
+      // Parse role labels
+      try {
+        const raw = res.data.roleLabels;
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          setRoleLabels(parsed);
+          setRoleLabelsDraft(parsed);
+        } else {
+          setRoleLabelsDraft({});
+        }
+      } catch {
+        setRoleLabelsDraft({});
       }
     });
     api.get('/steps').then((res) => setSteps(res.data));
@@ -215,6 +234,37 @@ export default function AdvancedSettingsPage() {
   const handleRemoveRule = async (index: number) => {
     const newRules = selisihRules.filter((_, i) => i !== index);
     await saveRulesToDB(newRules);
+  };
+
+  // Helper: resolve label role (kustom atau default)
+  const getRoleLabel = (roleKey: string) =>
+    roleLabels[roleKey] || EMPLOYEE_ROLES[roleKey] || roleKey;
+
+  const handleSaveRoleLabels = async () => {
+    setRoleLabelsLoading(true);
+    setRoleLabelsSaved(false);
+    try {
+      // Hanya simpan key yang berbeda dari default, atau semua
+      await api.post('/settings/bulk', {
+        roleLabels: JSON.stringify(roleLabelsDraft),
+      });
+      setRoleLabels(roleLabelsDraft);
+      setRoleLabelsSaved(true);
+      setTimeout(() => setRoleLabelsSaved(false), 2500);
+    } catch (error) {
+      console.error(error);
+      alert('Gagal menyimpan penggantian nama role.');
+    } finally {
+      setRoleLabelsLoading(false);
+    }
+  };
+
+  const handleResetRoleLabel = (roleKey: string) => {
+    setRoleLabelsDraft((prev) => {
+      const updated = { ...prev };
+      delete updated[roleKey];
+      return updated;
+    });
   };
 
   // Parse template to show preview
@@ -333,7 +383,7 @@ export default function AdvancedSettingsPage() {
                           {stepInfo?.isNonLsOnly && <span className="ml-1 text-[9px] font-bold">Non-LS</span>}
                         </Badge>
                         <span className="text-sm font-medium text-slate-700">
-                          {EMPLOYEE_ROLES[rule.role] || rule.role}
+                          {getRoleLabel(rule.role)}
                         </span>
                         {stepInfo && (
                           <span className="text-xs text-slate-400">({stepInfo.stepName})</span>
@@ -425,8 +475,8 @@ export default function AdvancedSettingsPage() {
                     <SelectValue placeholder="Pilih role" />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(EMPLOYEE_ROLES).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>{label}</SelectItem>
+                    {Object.entries(EMPLOYEE_ROLES).map(([key]) => (
+                      <SelectItem key={key} value={key}>{getRoleLabel(key)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -653,6 +703,105 @@ export default function AdvancedSettingsPage() {
             <div className="flex items-center gap-1 text-green-600 text-sm">
               <CheckCircle2 className="w-4 h-4" />
               Tersimpan!
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Penggantian Nama Role */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Tags className="w-5 h-5 text-slate-500" />
+            Penggantian Nama Role
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <p className="text-sm text-slate-500">
+            Ubah nama tampilan dari setiap <strong>role pegawai</strong> yang muncul di seluruh aplikasi.
+            Kosongkan kolom untuk menggunakan nama default.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {Object.entries(EMPLOYEE_ROLES).map(([key, defaultLabel]) => {
+              const customLabel = roleLabelsDraft[key] ?? '';
+              const isModified = customLabel !== '' && customLabel !== defaultLabel;
+              return (
+                <div key={key} className="flex items-center gap-2">
+                  <div className="flex-1 space-y-1">
+                    <Label className="text-xs text-slate-500 flex items-center gap-1">
+                      <span className="font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded text-[10px]">{key}</span>
+                      <span>{defaultLabel}</span>
+                      {isModified && (
+                        <Badge className="ml-1 text-[10px] py-0 px-1.5 bg-amber-100 text-amber-700 border-amber-200" variant="outline">
+                          diubah
+                        </Badge>
+                      )}
+                    </Label>
+                    <Input
+                      value={customLabel}
+                      onChange={(e) =>
+                        setRoleLabelsDraft((prev) => ({
+                          ...prev,
+                          [key]: e.target.value,
+                        }))
+                      }
+                      placeholder={defaultLabel}
+                      className={isModified ? 'border-amber-300 focus-visible:ring-amber-300' : ''}
+                    />
+                  </div>
+                  {isModified && (
+                    <button
+                      type="button"
+                      title="Reset ke default"
+                      onClick={() => handleResetRoleLabel(key)}
+                      className="mt-5 text-slate-400 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center gap-3 pt-1">
+            <Button onClick={handleSaveRoleLabels} disabled={roleLabelsLoading}>
+              {roleLabelsLoading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4 mr-2" />
+              )}
+              {roleLabelsLoading ? 'Menyimpan...' : 'Simpan Perubahan Nama'}
+            </Button>
+            {roleLabelsSaved && (
+              <span className="flex items-center gap-1 text-green-600 text-sm">
+                <CheckCircle2 className="w-4 h-4" /> Tersimpan!
+              </span>
+            )}
+          </div>
+
+          {Object.keys(roleLabels).length > 0 && (
+            <div className="bg-slate-50 border rounded-lg px-4 py-3 space-y-1">
+              <p className="text-xs font-semibold text-slate-600 mb-2">Nama yang sedang aktif:</p>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(EMPLOYEE_ROLES).map(([key, defaultLabel]) => {
+                  const active = roleLabels[key] || defaultLabel;
+                  const isCustom = roleLabels[key] && roleLabels[key] !== defaultLabel;
+                  return (
+                    <span
+                      key={key}
+                      className={`text-xs px-2 py-1 rounded border font-mono ${
+                        isCustom
+                          ? 'bg-amber-50 border-amber-200 text-amber-800'
+                          : 'bg-white border-slate-200 text-slate-600'
+                      }`}
+                    >
+                      {key}: <span className="font-sans font-medium">{active}</span>
+                    </span>
+                  );
+                })}
+              </div>
             </div>
           )}
         </CardContent>
