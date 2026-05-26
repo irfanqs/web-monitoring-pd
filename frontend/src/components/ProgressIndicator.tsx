@@ -29,8 +29,6 @@ interface ProgressIndicatorProps {
 }
 
 export function ProgressIndicator({
-  const getRoleLabel = useRoleStore((state) => state.getRoleLabel);
-
   currentStep,
   histories = [],
   compact = false,
@@ -38,6 +36,8 @@ export function ProgressIndicator({
   stepConfigs = [],
   getStepPicName,
 }: ProgressIndicatorProps) {
+  const getRoleLabel = useRoleStore((state) => state.getRoleLabel);
+
   // Get applicable steps based on LS/Non-LS
   const applicableSteps = stepConfigs.filter(step => {
     if (isLs) return !step.isNonLsOnly;
