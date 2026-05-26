@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRoleStore } from '@/lib/useRoleStore';
 import { Sidebar } from '@/components/Sidebar';
 import { useAuthStore } from '@/lib/store';
 
@@ -10,6 +11,11 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { user } = useAuthStore();
+  const fetchRoleLabels = useRoleStore((state) => state.fetchRoleLabels);
+  useEffect(() => {
+    fetchRoleLabels();
+  }, [fetchRoleLabels]);
+
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   if (!user) return null;

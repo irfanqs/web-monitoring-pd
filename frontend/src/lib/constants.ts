@@ -1,6 +1,6 @@
 export const EMPLOYEE_ROLES: Record<string, string> = {
   VER: 'Verifikator',
-  PPRBPD: 'Petugas Pembuat Rincian Biaya PD',
+  PPRBPD: 'Petugas Pembuat Rincian Biaya Perjalanan Dinas',
   OK: 'Operator Komitmen',
   BP: 'Bendahara Pengeluaran',
   OP: 'Operator Pembayaran',
@@ -8,7 +8,7 @@ export const EMPLOYEE_ROLES: Record<string, string> = {
   PPD: 'Pelaksana Perjalanan Dinas',
   ADK: 'Admin Digit Kemenkeu',
   KSBU: 'Kepala Sub Bagian Umum',
-  PABPD: 'Petugas Arsip Berkas PD',
+  PABPD: 'Petugas Arsip Berkas Perjalanan Dinas',
   OSPM: 'Operator SPM',
   OSPBy: 'Operator SPBy',
 };

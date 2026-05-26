@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EMPLOYEE_ROLES, SYSTEM_ROLES } from '@/lib/constants';
+import { useRoleStore } from '@/lib/useRoleStore';
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -28,6 +29,8 @@ interface SidebarProps {
 export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
+  const getRoleLabel = useRoleStore((state) => state.getRoleLabel);
+
 
   const adminLinks = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -128,7 +131,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                 <p className="font-medium truncate">{user?.name}</p>
                 <p className="text-xs text-slate-400 truncate">
                   {user?.systemRole === 'employee' && user?.employeeRole
-                    ? EMPLOYEE_ROLES[user.employeeRole]
+                    ? getRoleLabel(user.employeeRole)
                     : SYSTEM_ROLES[user?.systemRole || '']}
                 </p>
               </div>

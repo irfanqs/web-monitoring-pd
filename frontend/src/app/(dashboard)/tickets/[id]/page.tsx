@@ -80,8 +80,8 @@ export default function TicketDetailPage() {
   const getStepConfig = (stepNumber: number) => stepConfigs.find(s => s.stepNumber === stepNumber);
   
   const getPicNames = (employeeRole: string, stepNumber?: number) => {
-    // For step 12 (PPD), if assigned to specific users, show both assigned users
-    if (stepNumber === 12 && (ticket?.assignedPpdUser1 || ticket?.assignedPpdUser2)) {
+    // For PPD role, if assigned to specific users, show only those assigned users
+    if (employeeRole === 'PPD' && (ticket?.assignedPpdUser1 || ticket?.assignedPpdUser2)) {
       const names = [];
       if (ticket.assignedPpdUser1) names.push(ticket.assignedPpdUser1.name);
       if (ticket.assignedPpdUser2) names.push(ticket.assignedPpdUser2.name);

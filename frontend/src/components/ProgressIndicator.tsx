@@ -2,6 +2,7 @@
 
 import { cn } from '@/lib/utils';
 import { EMPLOYEE_ROLES } from '@/lib/constants';
+import { useRoleStore } from '@/lib/useRoleStore';
 import { Check } from 'lucide-react';
 
 interface StepConfig {
@@ -28,6 +29,8 @@ interface ProgressIndicatorProps {
 }
 
 export function ProgressIndicator({
+  const getRoleLabel = useRoleStore((state) => state.getRoleLabel);
+
   currentStep,
   histories = [],
   compact = false,
@@ -309,7 +312,7 @@ export function ProgressIndicator({
           ? 'Selesai' 
           : parallelInfo
           ? `Step ${parallelInfo.parallelSteps.join(', ')} (Paralel) - ${parallelInfo.completedCount}/${parallelInfo.total} selesai`
-          : `Step ${currentStep} dari ${maxStepNumber} - ${currentConfig ? (EMPLOYEE_ROLES[currentConfig.requiredEmployeeRole] || currentConfig.stepName) : ''}`
+          : `Step ${currentStep} dari ${maxStepNumber} - ${currentConfig ? (getRoleLabel(currentConfig.requiredEmployeeRole) || currentConfig.stepName) : ''}`
         }
       </p>
     </div>

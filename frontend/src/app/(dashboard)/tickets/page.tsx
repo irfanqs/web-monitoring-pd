@@ -152,11 +152,13 @@ export default function TicketsPage() {
       ? EMPLOYEE_ROLES[stepConfig.requiredEmployeeRole] || stepConfig.requiredEmployeeRole
       : '-';
     
-    // For step 12 (PPD), show only the first assigned PPD user
-    if (ticket.currentStep === 12 && ticket.assignedPpdUser1) {
+    // For PPD role, show only the assigned PPD users
+    if (stepConfig.requiredEmployeeRole === 'PPD' && ticket.assignedPpdUser1) {
+      const names = [ticket.assignedPpdUser1.name];
+      if (ticket.assignedPpdUser2) names.push(ticket.assignedPpdUser2.name);
       return {
         role: roleName,
-        userName: ticket.assignedPpdUser1.name,
+        userName: names.join(' / '),
       };
     }
     

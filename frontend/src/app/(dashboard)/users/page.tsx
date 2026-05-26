@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { EMPLOYEE_ROLES, SYSTEM_ROLES } from '@/lib/constants';
+import { useRoleStore } from '@/lib/useRoleStore';
 import { Plus, Pencil, Trash2, Eye, EyeOff } from 'lucide-react';
 
 interface User {
@@ -47,6 +48,8 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const getRoleLabel = useRoleStore((state) => state.getRoleLabel);
+  const fetchRoleLabels = useRoleStore((state) => state.fetchRoleLabels);
 
   const [form, setForm] = useState({
     email: '', // kept as 'email' for API compatibility, but used as username
@@ -62,6 +65,7 @@ export default function UsersPage() {
 
   useEffect(() => {
     fetchUsers();
+    fetchRoleLabels();
   }, []);
 
   const resetForm = () => {
@@ -229,9 +233,9 @@ export default function UsersPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.entries(EMPLOYEE_ROLES).map(([key, label]) => (
+                      {Object.entries(EMPLOYEE_ROLES).map(([key]) => (
                         <SelectItem key={key} value={key}>
-                          {label}
+                          {getRoleLabel(key)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -271,7 +275,7 @@ export default function UsersPage() {
                     </TableCell>
                     <TableCell className="border-r">
                       {user.employeeRole && (
-                        <Badge>{EMPLOYEE_ROLES[user.employeeRole]}</Badge>
+                        <Badge>{getRoleLabel(user.employeeRole)}</Badge>
                       )}
                     </TableCell>
                     <TableCell>
