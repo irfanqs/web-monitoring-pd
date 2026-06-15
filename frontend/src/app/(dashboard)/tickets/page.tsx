@@ -684,12 +684,14 @@ export default function TicketsPage() {
                   );
                   
                   return (
-                  <TableRow key={ticket.id} className={`border-b last:border-b-0 ${hasReturnMessage ? 'bg-red-50' : ''}`}>
+                  <TableRow
+                    key={ticket.id}
+                    className={`border-b last:border-b-0 cursor-pointer hover:bg-slate-50 ${hasReturnMessage ? 'bg-red-50 hover:bg-red-100' : ''}`}
+                    onClick={() => window.location.href = `/tickets/${ticket.id}`}
+                  >
                     <TableCell className="border-r max-w-[300px]">
-                      <div className="space-y-1">
-                        <div className="truncate" title={ticket.activityName}>
-                          {ticket.activityName.replace(/\s+/g, ' ').trim()}
-                        </div>
+                      <div className="break-words whitespace-normal leading-snug">
+                        {ticket.activityName.replace(/\s+/g, ' ').trim()}
                       </div>
                     </TableCell>
                     <TableCell className="border-r whitespace-nowrap">
@@ -746,7 +748,7 @@ export default function TicketsPage() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <div className="flex gap-1">
                         <Link href={`/tickets/${ticket.id}`}>
                           <Button variant="ghost" size="sm">
