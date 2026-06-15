@@ -32,6 +32,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus, Eye, Trash2, Pencil, Search, ChevronLeft, ChevronRight, FileSpreadsheet, FileText } from 'lucide-react';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import { EMPLOYEE_ROLES } from '@/lib/constants';
 import { exportToExcel, exportToPDF } from '@/lib/exportUtils';
 
@@ -539,33 +540,21 @@ export default function TicketsPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Pelaksana Perjalanan Dinas 1</Label>
-                  <Select value={form.assignedPpdUserId1} onValueChange={(v) => setForm({ ...form, assignedPpdUserId1: v })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih PPD 1..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {users.filter(u => u.employeeRole === 'PPD').map(u => (
-                        <SelectItem key={u.id} value={u.id}>
-                          {u.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect
+                    options={users.filter(u => u.employeeRole === 'PPD').map(u => ({ value: u.id, label: u.name }))}
+                    value={form.assignedPpdUserId1}
+                    onChange={(v) => setForm({ ...form, assignedPpdUserId1: v })}
+                    placeholder="Pilih PPD 1..."
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Pelaksana Perjalanan Dinas 2</Label>
-                  <Select value={form.assignedPpdUserId2} onValueChange={(v) => setForm({ ...form, assignedPpdUserId2: v })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih PPD 2..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {users.filter(u => u.employeeRole === 'PPD').map(u => (
-                        <SelectItem key={u.id} value={u.id}>
-                          {u.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect
+                    options={users.filter(u => u.employeeRole === 'PPD').map(u => ({ value: u.id, label: u.name }))}
+                    value={form.assignedPpdUserId2}
+                    onChange={(v) => setForm({ ...form, assignedPpdUserId2: v })}
+                    placeholder="Pilih PPD 2..."
+                  />
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? 'Menyimpan...' : 'Simpan'}
@@ -865,31 +854,21 @@ export default function TicketsPage() {
             </div>
             <div className="space-y-2">
               <Label>Pelaksana Perjalanan Dinas 1</Label>
-              <Select value={editForm.assignedPpdUserId1} onValueChange={(v) => setEditForm((prev) => ({ ...prev, assignedPpdUserId1: v === 'none' ? '' : v }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih PPD 1..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">— Tidak ada —</SelectItem>
-                  {users.filter(u => u.employeeRole === 'PPD').map(u => (
-                    <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                options={users.filter(u => u.employeeRole === 'PPD').map(u => ({ value: u.id, label: u.name }))}
+                value={editForm.assignedPpdUserId1}
+                onChange={(v) => setEditForm((prev) => ({ ...prev, assignedPpdUserId1: v }))}
+                placeholder="Pilih PPD 1..."
+              />
             </div>
             <div className="space-y-2">
               <Label>Pelaksana Perjalanan Dinas 2</Label>
-              <Select value={editForm.assignedPpdUserId2} onValueChange={(v) => setEditForm((prev) => ({ ...prev, assignedPpdUserId2: v === 'none' ? '' : v }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih PPD 2..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">— Tidak ada —</SelectItem>
-                  {users.filter(u => u.employeeRole === 'PPD').map(u => (
-                    <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <SearchableSelect
+                options={users.filter(u => u.employeeRole === 'PPD').map(u => ({ value: u.id, label: u.name }))}
+                value={editForm.assignedPpdUserId2}
+                onChange={(v) => setEditForm((prev) => ({ ...prev, assignedPpdUserId2: v }))}
+                placeholder="Pilih PPD 2..."
+              />
             </div>
             <Button type="submit" className="w-full" disabled={editLoading}>
               {editLoading ? 'Menyimpan...' : 'Simpan Perubahan'}
