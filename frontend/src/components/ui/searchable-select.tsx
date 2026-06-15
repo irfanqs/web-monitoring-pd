@@ -99,12 +99,14 @@ export function SearchableSelect({
             />
           </div>
           <ul className="max-h-48 overflow-y-auto py-1">
-            <li
-              className="px-3 py-1.5 text-sm text-muted-foreground cursor-pointer hover:bg-accent"
-              onClick={() => handleSelect('')}
-            >
-              {clearLabel}
-            </li>
+            {!query.trim() && (
+              <li
+                className="px-3 py-1.5 text-sm text-muted-foreground cursor-pointer hover:bg-accent"
+                onClick={() => handleSelect('')}
+              >
+                {clearLabel}
+              </li>
+            )}
             {filtered.length === 0 ? (
               <li className="px-3 py-2 text-sm text-muted-foreground">Tidak ditemukan</li>
             ) : (
