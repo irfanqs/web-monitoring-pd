@@ -22,9 +22,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Eye, Trash2, Search, ChevronLeft, ChevronRight, FileSpreadsheet, FileText } from 'lucide-react';
+import { SearchableSelect } from '@/components/ui/searchable-select';
+import { Eye, Pencil, Trash2, Search, ChevronLeft, ChevronRight, FileSpreadsheet, FileText } from 'lucide-react';
 import { EMPLOYEE_ROLES } from '@/lib/constants';
 import { exportArchiveToExcel, exportArchiveToPDF } from '@/lib/exportUtils';
 
@@ -58,9 +65,23 @@ interface Ticket {
 export default function ArchivePage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [stepConfigs, setStepConfigs] = useState<StepConfig[]>([]);
+  const [users, setUsers] = useState<Array<{ id: string; name: string; employeeRole: string | null }>>([]);
   const [years, setYears] = useState<number[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const { user } = useAuthStore();
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editingTicket, setEditingTicket] = useState<Ticket | null>(null);
+  const [editForm, setEditForm] = useState({
+    activityName: '',
+    assignmentLetterNumber: '',
+    uraian: '',
+    startDate: '',
+    createdAt: '',
+    assignedPpdUserId1: '',
+    assignedPpdUserId2: '',
+  });
 
   // Filter & Sort states
   const [searchName, setSearchName] = useState('');
@@ -100,6 +121,56 @@ export default function ArchivePage() {
     api.get('/steps').then((res) => setStepConfigs(res.data));
   };
 
+  const fetchUsers = () => {
+    api.get('/users').then((res) => setUsers(res.data));
+  };
+
+  const handleOpenEdit = (ticket: Ticket) => {
+    setEditingTicket(ticket);
+    setEditForm({
+      activityName: ticket.activityName,
+      assignmentLetterNumber: ticket.assignmentLetterNumber,
+      uraian: ticket.uraian || '',
+      startDate: ticket.startDate ? ticket.startDate.split('T')[0] : '',
+      createdAt: ticket.createdAt ? ticket.createdAt.split('T')[0] : '',
+      assignedPpdUserId1: ticket.assignedPpdUser1?.id || '',
+      assignedPpdUserId2: ticket.assignedPpdUser2?.id || '',
+    });
+    setEditOpen(true);
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTicket) return;
+    const cleanActivityName = editForm.activityName.replace(/\s+/g, ' ').trim();
+    if (!cleanActivityName) { alert('Nama kegiatan wajib diisi'); return; }
+    if (cleanActivityName.length > 250) { alert('Nama kegiatan maksimal 250 karakter'); return; }
+    if (!editForm.assignmentLetterNumber.trim()) { alert('Nomor surat tugas wajib diisi'); return; }
+    if (editForm.assignedPpdUserId1 && editForm.assignedPpdUserId2 && editForm.assignedPpdUserId1 === editForm.assignedPpdUserId2) {
+      alert('Pelaksana Perjalanan Dinas 1 dan 2 harus berbeda');
+      return;
+    }
+    setEditLoading(true);
+    try {
+      await api.patch(`/tickets/${editingTicket.id}`, {
+        activityName: cleanActivityName,
+        assignmentLetterNumber: editForm.assignmentLetterNumber.trim(),
+        uraian: editForm.uraian.trim(),
+        startDate: editForm.startDate || undefined,
+        createdAt: editForm.createdAt || undefined,
+        assignedPpdUserId1: editForm.assignedPpdUserId1 || null,
+        assignedPpdUserId2: editForm.assignedPpdUserId2 || null,
+      });
+      setEditOpen(false);
+      setEditingTicket(null);
+      fetchTickets();
+    } catch {
+      alert('Gagal menyimpan perubahan');
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   // Get current step info (who needs to process next)
   const getCurrentStepInfo = (ticket: Ticket) => {
     const stepConfig = stepConfigs.find(s => s.stepNumber === ticket.currentStep);
@@ -128,6 +199,7 @@ export default function ArchivePage() {
   useEffect(() => {
     fetchTickets();
     fetchStepConfigs();
+    fetchUsers();
   }, []);
 
   // Filter tickets by selected year based on startDate, then apply search/sort
@@ -379,14 +451,18 @@ export default function ArchivePage() {
                 </TableHeader>
                 <TableBody>
                   {paginatedTickets.map((ticket) => (
-                    <TableRow key={ticket.id} className="border-b last:border-b-0">
+                    <TableRow
+                      key={ticket.id}
+                      className="group border-b last:border-b-0 cursor-pointer hover:bg-slate-50"
+                      onClick={() => window.location.href = `/tickets/${ticket.id}`}
+                    >
                       <TableCell className="border-r max-w-[300px]">
-                        <div className="truncate" title={ticket.activityName}>
+                        <div className="break-words whitespace-normal leading-snug group-hover:underline">
                           {ticket.activityName.replace(/\s+/g, ' ').trim()}
                         </div>
                       </TableCell>
                       <TableCell className="border-r whitespace-nowrap">
-                        {ticket.assignmentLetterNumber}
+                        <span className="group-hover:underline">{ticket.assignmentLetterNumber}</span>
                       </TableCell>
                       <TableCell className="border-r">
                         <Badge variant={ticket.isLs ? 'default' : 'secondary'}>
@@ -396,7 +472,7 @@ export default function ArchivePage() {
                       <TableCell className="border-r whitespace-nowrap">
                         {new Date(ticket.startDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </TableCell>
-                      <TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <div className="flex gap-1">
                           <Link href={`/tickets/${ticket.id}`}>
                             <Button variant="ghost" size="sm">
@@ -404,14 +480,24 @@ export default function ArchivePage() {
                             </Button>
                           </Link>
                           {user?.systemRole === 'admin' && (
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => handleDelete(ticket.id)}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleOpenEdit(ticket)}
+                                className="text-blue-500 hover:text-blue-700"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDelete(ticket.id)}
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </>
                           )}
                         </div>
                       </TableCell>
@@ -451,6 +537,80 @@ export default function ArchivePage() {
           </div>
         </CardContent>
       </Card>
+      {/* Edit Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle>Edit Perjalanan Dinas — {editingTicket?.ticketNumber}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nama Kegiatan</Label>
+              <Input
+                value={editForm.activityName}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, activityName: e.target.value.replace(/\s+/g, ' ') }))}
+                maxLength={250}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Nomor Surat Tugas</Label>
+              <Input
+                value={editForm.assignmentLetterNumber}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, assignmentLetterNumber: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Uraian (Opsional)</Label>
+              <Input
+                value={editForm.uraian}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, uraian: e.target.value }))}
+                placeholder="Deskripsi tambahan..."
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Tanggal Mulai</Label>
+                <Input
+                  type="date"
+                  value={editForm.startDate}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, startDate: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Tanggal PD Dibuat</Label>
+                <Input
+                  type="date"
+                  value={editForm.createdAt}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, createdAt: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Pelaksana Perjalanan Dinas 1</Label>
+              <SearchableSelect
+                options={users.filter(u => u.employeeRole === 'PPD').map(u => ({ value: u.id, label: u.name }))}
+                value={editForm.assignedPpdUserId1}
+                onChange={(v) => setEditForm((prev) => ({ ...prev, assignedPpdUserId1: v }))}
+                placeholder="Pilih PPD 1..."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Pelaksana Perjalanan Dinas 2</Label>
+              <SearchableSelect
+                options={users.filter(u => u.employeeRole === 'PPD').map(u => ({ value: u.id, label: u.name }))}
+                value={editForm.assignedPpdUserId2}
+                onChange={(v) => setEditForm((prev) => ({ ...prev, assignedPpdUserId2: v }))}
+                placeholder="Pilih PPD 2..."
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={editLoading}>
+              {editLoading ? 'Menyimpan...' : 'Simpan Perubahan'}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
