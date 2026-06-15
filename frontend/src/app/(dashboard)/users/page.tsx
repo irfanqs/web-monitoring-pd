@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/select';
 import { EMPLOYEE_ROLES, SYSTEM_ROLES } from '@/lib/constants';
 import { useRoleStore } from '@/lib/useRoleStore';
-import { Plus, Pencil, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye, EyeOff, Search } from 'lucide-react';
 
 interface User {
   id: string;
@@ -43,6 +43,7 @@ interface User {
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
+  const [search, setSearch] = useState('');
   const [open, setOpen] = useState(false);
   const [editUser, setEditUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
@@ -252,6 +253,15 @@ export default function UsersPage() {
 
       <Card>
         <CardContent className="p-6">
+          <div className="relative mb-4 max-w-xs">
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input
+              placeholder="Cari nama..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-8 h-9"
+            />
+          </div>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -264,7 +274,12 @@ export default function UsersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
+                {users
+                  .filter((u) =>
+                    u.name.toLowerCase().includes(search.toLowerCase()) ||
+                    u.username.toLowerCase().includes(search.toLowerCase())
+                  )
+                  .map((user) => (
                   <TableRow key={user.id} className="border-b last:border-b-0">
                     <TableCell className="font-medium border-r">{user.name}</TableCell>
                     <TableCell className="border-r">{user.username}</TableCell>
@@ -297,7 +312,7 @@ export default function UsersPage() {
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                  ))}
               </TableBody>
             </Table>
           </div>
