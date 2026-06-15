@@ -7,9 +7,13 @@ import { useAuthStore } from '@/lib/store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ProgressIndicator } from '@/components/ProgressIndicator';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import { EMPLOYEE_ROLES } from '@/lib/constants';
-import { ArrowLeft, Download, SkipForward } from 'lucide-react';
+import { ArrowLeft, Download, Pencil, SkipForward } from 'lucide-react';
 
 interface StepConfig {
   id: number;
@@ -56,6 +60,17 @@ export default function TicketDetailPage() {
   const [stepConfigs, setStepConfigs] = useState<StepConfig[]>([]);
   const [users, setUsers] = useState<Array<{ id: string; name: string; employeeRole: string | null }>>([]);
   const [skipping, setSkipping] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editForm, setEditForm] = useState({
+    activityName: '',
+    assignmentLetterNumber: '',
+    uraian: '',
+    startDate: '',
+    createdAt: '',
+    assignedPpdUserId1: '',
+    assignedPpdUserId2: '',
+  });
   const { user } = useAuthStore();
 
   const fetchTicket = () => {
@@ -121,6 +136,50 @@ export default function TicketDetailPage() {
     }
   };
 
+  const handleOpenEdit = () => {
+    if (!ticket) return;
+    setEditForm({
+      activityName: ticket.activityName,
+      assignmentLetterNumber: ticket.assignmentLetterNumber,
+      uraian: ticket.uraian || '',
+      startDate: ticket.startDate ? ticket.startDate.split('T')[0] : '',
+      createdAt: ticket.createdAt ? ticket.createdAt.split('T')[0] : '',
+      assignedPpdUserId1: ticket.assignedPpdUser1?.id || '',
+      assignedPpdUserId2: ticket.assignedPpdUser2?.id || '',
+    });
+    setEditOpen(true);
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanActivityName = editForm.activityName.replace(/\s+/g, ' ').trim();
+    if (!cleanActivityName) { alert('Nama kegiatan wajib diisi'); return; }
+    if (cleanActivityName.length > 250) { alert('Nama kegiatan maksimal 250 karakter'); return; }
+    if (!editForm.assignmentLetterNumber.trim()) { alert('Nomor surat tugas wajib diisi'); return; }
+    if (editForm.assignedPpdUserId1 && editForm.assignedPpdUserId2 && editForm.assignedPpdUserId1 === editForm.assignedPpdUserId2) {
+      alert('Pelaksana Perjalanan Dinas 1 dan 2 harus berbeda');
+      return;
+    }
+    setEditLoading(true);
+    try {
+      await api.patch(`/tickets/${params.id}`, {
+        activityName: cleanActivityName,
+        assignmentLetterNumber: editForm.assignmentLetterNumber.trim(),
+        uraian: editForm.uraian.trim(),
+        startDate: editForm.startDate || undefined,
+        createdAt: editForm.createdAt || undefined,
+        assignedPpdUserId1: editForm.assignedPpdUserId1 || null,
+        assignedPpdUserId2: editForm.assignedPpdUserId2 || null,
+      });
+      setEditOpen(false);
+      fetchTicket();
+    } catch {
+      alert('Gagal menyimpan perubahan');
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   const handleAdminSkip = async (stepNumber?: number) => {
     setSkipping(true);
     try {
@@ -149,21 +208,29 @@ export default function TicketDetailPage() {
             <p className="text-slate-500">{ticket.assignmentLetterNumber}</p>
           </div>
         </div>
-        <Badge
-          className={
-            ticket.status === 'completed'
-              ? 'bg-green-500 hover:bg-green-600 text-white text-lg px-4 py-1'
+        <div className="flex items-center gap-2">
+          {user?.systemRole === 'admin' && (
+            <Button size="sm" variant="outline" onClick={handleOpenEdit} className="text-blue-600 border-blue-300 hover:bg-blue-50">
+              <Pencil className="w-4 h-4 mr-1" />
+              Edit
+            </Button>
+          )}
+          <Badge
+            className={
+              ticket.status === 'completed'
+                ? 'bg-green-500 hover:bg-green-600 text-white text-lg px-4 py-1'
+                : ticket.status === 'in_progress'
+                ? 'bg-blue-500 hover:bg-blue-600 text-white text-lg px-4 py-1'
+                : 'bg-yellow-300 hover:bg-yellow-400 text-slate-900 text-lg px-4 py-1'
+            }
+          >
+            {ticket.status === 'completed'
+              ? 'Selesai'
               : ticket.status === 'in_progress'
-              ? 'bg-blue-500 hover:bg-blue-600 text-white text-lg px-4 py-1'
-              : 'bg-yellow-300 hover:bg-yellow-400 text-slate-900 text-lg px-4 py-1'
-          }
-        >
-          {ticket.status === 'completed'
-            ? 'Selesai'
-            : ticket.status === 'in_progress'
-            ? 'Proses'
-            : 'Pending'}
-        </Badge>
+              ? 'Proses'
+              : 'Pending'}
+          </Badge>
+        </div>
       </div>
 
       <Card>
@@ -388,6 +455,80 @@ export default function TicketDetailPage() {
           </CardContent>
         </Card>
       </div>
+      {/* Edit Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle>Edit Perjalanan Dinas — {ticket.ticketNumber}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nama Kegiatan</Label>
+              <Input
+                value={editForm.activityName}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, activityName: e.target.value.replace(/\s+/g, ' ') }))}
+                maxLength={250}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Nomor Surat Tugas</Label>
+              <Input
+                value={editForm.assignmentLetterNumber}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, assignmentLetterNumber: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Uraian (Opsional)</Label>
+              <Input
+                value={editForm.uraian}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, uraian: e.target.value }))}
+                placeholder="Deskripsi tambahan..."
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Tanggal Mulai</Label>
+                <Input
+                  type="date"
+                  value={editForm.startDate}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, startDate: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Tanggal PD Dibuat</Label>
+                <Input
+                  type="date"
+                  value={editForm.createdAt}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, createdAt: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Pelaksana Perjalanan Dinas 1</Label>
+              <SearchableSelect
+                options={users.filter(u => u.employeeRole === 'PPD').map(u => ({ value: u.id, label: u.name }))}
+                value={editForm.assignedPpdUserId1}
+                onChange={(v) => setEditForm((prev) => ({ ...prev, assignedPpdUserId1: v }))}
+                placeholder="Pilih PPD 1..."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Pelaksana Perjalanan Dinas 2</Label>
+              <SearchableSelect
+                options={users.filter(u => u.employeeRole === 'PPD').map(u => ({ value: u.id, label: u.name }))}
+                value={editForm.assignedPpdUserId2}
+                onChange={(v) => setEditForm((prev) => ({ ...prev, assignedPpdUserId2: v }))}
+                placeholder="Pilih PPD 2..."
+              />
+            </div>
+            <Button type="submit" className="w-full" disabled={editLoading}>
+              {editLoading ? 'Menyimpan...' : 'Simpan Perubahan'}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
