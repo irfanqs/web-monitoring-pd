@@ -675,16 +675,16 @@ export default function TicketsPage() {
                   return (
                   <TableRow
                     key={ticket.id}
-                    className={`border-b last:border-b-0 cursor-pointer hover:bg-slate-50 ${hasReturnMessage ? 'bg-red-50 hover:bg-red-100' : ''}`}
+                    className={`group border-b last:border-b-0 cursor-pointer hover:bg-slate-50 ${hasReturnMessage ? 'bg-red-50 hover:bg-red-100' : ''}`}
                     onClick={() => window.location.href = `/tickets/${ticket.id}`}
                   >
                     <TableCell className="border-r max-w-[300px]">
-                      <div className="break-words whitespace-normal leading-snug">
+                      <div className="break-words whitespace-normal leading-snug group-hover:underline">
                         {ticket.activityName.replace(/\s+/g, ' ').trim()}
                       </div>
                     </TableCell>
                     <TableCell className="border-r whitespace-nowrap">
-                      {ticket.assignmentLetterNumber}
+                      <span className="group-hover:underline">{ticket.assignmentLetterNumber}</span>
                     </TableCell>
                     <TableCell className="border-r whitespace-nowrap">
                       {ticket.receivedDate
