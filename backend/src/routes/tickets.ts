@@ -527,6 +527,63 @@ router.get('/:id/files/:historyId/download', authenticate, async (req: AuthReque
   }
 });
 
+// Edit ticket details (Admin only)
+router.patch('/:id', authenticate, requireRole('admin'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { activityName, assignmentLetterNumber, uraian, startDate, createdAt, assignedPpdUserId1, assignedPpdUserId2 } = req.body;
+
+    const ticket = await prisma.ticket.findUnique({ where: { id: req.params.id } });
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+
+    const cleanActivityName = activityName !== undefined ? normalizeSingleLineText(activityName) : undefined;
+    const cleanLetterNumber = assignmentLetterNumber !== undefined ? normalizeSingleLineText(assignmentLetterNumber) : undefined;
+    const cleanUraian = uraian !== undefined ? (typeof uraian === 'string' ? uraian.trim() : null) : undefined;
+
+    if (cleanActivityName !== undefined && !cleanActivityName) {
+      return res.status(400).json({ error: 'Nama kegiatan wajib diisi' });
+    }
+    if (cleanActivityName && cleanActivityName.length > MAX_ACTIVITY_NAME_LENGTH) {
+      return res.status(400).json({ error: `Nama kegiatan maksimal ${MAX_ACTIVITY_NAME_LENGTH} karakter` });
+    }
+    if (cleanLetterNumber !== undefined && !cleanLetterNumber) {
+      return res.status(400).json({ error: 'Nomor surat tugas wajib diisi' });
+    }
+
+    const ppd1 = assignedPpdUserId1 !== undefined ? (assignedPpdUserId1 || null) : ticket.assignedPpdUserId1;
+    const ppd2 = assignedPpdUserId2 !== undefined ? (assignedPpdUserId2 || null) : ticket.assignedPpdUserId2;
+    if (ppd1 && ppd2 && ppd1 === ppd2) {
+      return res.status(400).json({ error: 'Pelaksana Perjalanan Dinas 1 dan 2 harus berbeda' });
+    }
+
+    const updated = await prisma.ticket.update({
+      where: { id: req.params.id },
+      data: {
+        ...(cleanActivityName !== undefined && { activityName: cleanActivityName }),
+        ...(cleanLetterNumber !== undefined && { assignmentLetterNumber: cleanLetterNumber }),
+        ...(cleanUraian !== undefined && { uraian: cleanUraian || null }),
+        ...(startDate !== undefined && { startDate: new Date(startDate) }),
+        ...(createdAt !== undefined && { createdAt: new Date(createdAt) }),
+        ...(assignedPpdUserId1 !== undefined && { assignedPpdUserId1: assignedPpdUserId1 || null }),
+        ...(assignedPpdUserId2 !== undefined && { assignedPpdUserId2: assignedPpdUserId2 || null }),
+      },
+      include: {
+        createdBy: { select: { id: true, name: true } },
+        assignedPpdUser1: { select: { id: true, name: true } },
+        assignedPpdUser2: { select: { id: true, name: true } },
+        histories: {
+          include: { processedBy: { select: { id: true, name: true } } },
+          orderBy: { stepNumber: 'asc' },
+        },
+      },
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error('Edit ticket error:', error);
+    res.status(500).json({ error: 'Failed to update ticket' });
+  }
+});
+
 // Delete ticket (Admin only)
 router.delete('/:id', authenticate, requireRole('admin'), async (req: AuthRequest, res: Response) => {
   try {
