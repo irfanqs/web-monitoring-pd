@@ -244,49 +244,63 @@ router.post('/', authenticate, requireRole('admin'), async (req: AuthRequest, re
     // Use startDate year for ticket number, default to current date if not provided
     const ticketStartDate = startDate ? new Date(startDate) : new Date();
     const year = ticketStartDate.getFullYear();
-    
-    // Get all ticket numbers for that year and find the true max numerically.
-    // Cannot use orderBy ticketNumber (string sort) because "PD-2026100" < "PD-202699"
-    // lexicographically, causing duplicates once the counter hits 100.
-    const yearTickets = await prisma.ticket.findMany({
-      where: { ticketNumber: { startsWith: `PD-${year}` } },
-      select: { ticketNumber: true },
-    });
-
-    let nextNumber = 1;
-    if (yearTickets.length > 0) {
-      const numbers = yearTickets
-        .map(t => {
-          const match = t.ticketNumber.match(/^PD-\d{4}(\d+)$/);
-          return match ? parseInt(match[1], 10) : 0;
-        })
-        .filter(n => n > 0);
-      if (numbers.length > 0) {
-        nextNumber = Math.max(...numbers) + 1;
-      }
-    }
-
-    const ticketNumber = `PD-${year}${String(nextNumber).padStart(2, '0')}`;
 
     // Get first step based on LS/Non-LS from step configuration
     const applicableSteps = await getStepConfigs(isLs || false);
     const startStep = applicableSteps.length > 0 ? applicableSteps[0].stepNumber : 1;
 
-    const ticket = await prisma.ticket.create({
-      data: {
-        ticketNumber,
-        activityName: cleanActivityName,
-        assignmentLetterNumber: cleanAssignmentLetterNumber,
-        uraian: cleanUraian || null,
-        startDate: ticketStartDate,
-        isLs: isLs || false,
-        currentStep: startStep,
-        assignedPpdUserId1: assignedPpdUserId1 || null,
-        assignedPpdUserId2: assignedPpdUserId2 || null,
-        createdById: req.user!.id,
-      },
-      include: { createdBy: { select: { id: true, name: true } } },
-    });
+    // Retry up to 5 times in case of a race condition duplicate (P2002)
+    const MAX_RETRIES = 5;
+    let ticket;
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+      // Re-query on every attempt so a concurrent insert is always reflected
+      const yearTickets = await prisma.ticket.findMany({
+        where: { ticketNumber: { startsWith: `PD-${year}` } },
+        select: { ticketNumber: true },
+      });
+
+      let nextNumber = 1;
+      if (yearTickets.length > 0) {
+        const numbers = yearTickets
+          .map(t => {
+            const match = t.ticketNumber.match(/^PD-\d{4}(\d+)$/);
+            return match ? parseInt(match[1], 10) : 0;
+          })
+          .filter(n => n > 0);
+        if (numbers.length > 0) {
+          nextNumber = Math.max(...numbers) + 1;
+        }
+      }
+
+      const ticketNumber = `PD-${year}${String(nextNumber).padStart(2, '0')}`;
+
+      try {
+        ticket = await prisma.ticket.create({
+          data: {
+            ticketNumber,
+            activityName: cleanActivityName,
+            assignmentLetterNumber: cleanAssignmentLetterNumber,
+            uraian: cleanUraian || null,
+            startDate: ticketStartDate,
+            isLs: isLs || false,
+            currentStep: startStep,
+            assignedPpdUserId1: assignedPpdUserId1 || null,
+            assignedPpdUserId2: assignedPpdUserId2 || null,
+            createdById: req.user!.id,
+          },
+          include: { createdBy: { select: { id: true, name: true } } },
+        });
+        break; // success — exit retry loop
+      } catch (createError: any) {
+        // P2002 = unique constraint violation; retry with a fresh max lookup
+        if (createError?.code === 'P2002' && attempt < MAX_RETRIES - 1) {
+          console.warn(`Ticket number collision on attempt ${attempt + 1}, retrying...`);
+          continue;
+        }
+        throw createError;
+      }
+    }
+
     res.status(201).json(ticket);
   } catch (error) {
     console.error('Create ticket error:', error);
