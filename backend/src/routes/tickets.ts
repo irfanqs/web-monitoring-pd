@@ -241,9 +241,11 @@ router.post('/', authenticate, requireRole('admin'), async (req: AuthRequest, re
       });
     }
 
-    // Use startDate year for ticket number, default to current date if not provided
+    // Use startDate year+month for ticket number, default to current date if not provided
     const ticketStartDate = startDate ? new Date(startDate) : new Date();
-    const year = ticketStartDate.getFullYear();
+    const yy = String(ticketStartDate.getFullYear()).slice(-2);
+    const mm = String(ticketStartDate.getMonth() + 1).padStart(2, '0');
+    const yearMonth = `${yy}${mm}`; // e.g. "2606" for June 2026
 
     // Get first step based on LS/Non-LS from step configuration
     const applicableSteps = await getStepConfigs(isLs || false);
@@ -254,14 +256,14 @@ router.post('/', authenticate, requireRole('admin'), async (req: AuthRequest, re
     let ticket;
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       // Re-query on every attempt so a concurrent insert is always reflected
-      const yearTickets = await prisma.ticket.findMany({
-        where: { ticketNumber: { startsWith: `PD-${year}` } },
+      const monthTickets = await prisma.ticket.findMany({
+        where: { ticketNumber: { startsWith: `PD-${yearMonth}` } },
         select: { ticketNumber: true },
       });
 
       let nextNumber = 1;
-      if (yearTickets.length > 0) {
-        const numbers = yearTickets
+      if (monthTickets.length > 0) {
+        const numbers = monthTickets
           .map(t => {
             const match = t.ticketNumber.match(/^PD-\d{4}(\d+)$/);
             return match ? parseInt(match[1], 10) : 0;
@@ -272,7 +274,8 @@ router.post('/', authenticate, requireRole('admin'), async (req: AuthRequest, re
         }
       }
 
-      const ticketNumber = `PD-${year}${String(nextNumber).padStart(2, '0')}`;
+      // Format: PD-{YY}{MM}{urutan} e.g. PD-260601, PD-2606100
+      const ticketNumber = `PD-${yearMonth}${nextNumber}`;
 
       try {
         ticket = await prisma.ticket.create({
