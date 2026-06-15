@@ -245,25 +245,27 @@ router.post('/', authenticate, requireRole('admin'), async (req: AuthRequest, re
     const ticketStartDate = startDate ? new Date(startDate) : new Date();
     const year = ticketStartDate.getFullYear();
     
-    // Get the highest ticket number for that year
-    const latestTicket = await prisma.ticket.findFirst({
-      where: {
-        ticketNumber: {
-          startsWith: `PD-${year}`,
-        },
-      },
-      orderBy: { ticketNumber: 'desc' },
+    // Get all ticket numbers for that year and find the true max numerically.
+    // Cannot use orderBy ticketNumber (string sort) because "PD-2026100" < "PD-202699"
+    // lexicographically, causing duplicates once the counter hits 100.
+    const yearTickets = await prisma.ticket.findMany({
+      where: { ticketNumber: { startsWith: `PD-${year}` } },
+      select: { ticketNumber: true },
     });
-    
+
     let nextNumber = 1;
-    if (latestTicket) {
-      // Extract number from ticket like "PD-202611" -> 11
-      const match = latestTicket.ticketNumber.match(/PD-\d{4}(\d+)/);
-      if (match) {
-        nextNumber = parseInt(match[1]) + 1;
+    if (yearTickets.length > 0) {
+      const numbers = yearTickets
+        .map(t => {
+          const match = t.ticketNumber.match(/^PD-\d{4}(\d+)$/);
+          return match ? parseInt(match[1], 10) : 0;
+        })
+        .filter(n => n > 0);
+      if (numbers.length > 0) {
+        nextNumber = Math.max(...numbers) + 1;
       }
     }
-    
+
     const ticketNumber = `PD-${year}${String(nextNumber).padStart(2, '0')}`;
 
     // Get first step based on LS/Non-LS from step configuration
