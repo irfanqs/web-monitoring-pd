@@ -66,6 +66,11 @@ export default function AdvancedSettingsPage() {
   const [downloadConfigLoading, setDownloadConfigLoading] = useState(false);
   const [downloadConfigSaved, setDownloadConfigSaved] = useState(false);
 
+  // Upload file size config
+  const [maxFileSizeMb, setMaxFileSizeMb] = useState<string>('10');
+  const [fileSizeLoading, setFileSizeLoading] = useState(false);
+  const [fileSizeSaved, setFileSizeSaved] = useState(false);
+
   // Role labels (penggantian nama role)
   const [roleLabels, setRoleLabels] = useState<Record<string, string>>({});
   const [roleLabelsDraft, setRoleLabelsDraft] = useState<Record<string, string>>({});
@@ -111,6 +116,10 @@ export default function AdvancedSettingsPage() {
       } catch {
         setDownloadStepsLs([]);
         setDownloadStepsNonLs([]);
+      }
+      // Parse max file size
+      if (res.data.maxFileSize) {
+        setMaxFileSizeMb(res.data.maxFileSize);
       }
       // Parse role labels
       try {
@@ -256,6 +265,26 @@ export default function AdvancedSettingsPage() {
       alert('Gagal menyimpan penggantian nama role.');
     } finally {
       setRoleLabelsLoading(false);
+    }
+  };
+
+  const handleSaveFileSize = async () => {
+    const parsed = parseFloat(maxFileSizeMb);
+    if (isNaN(parsed) || parsed <= 0) {
+      alert('Masukkan ukuran file yang valid (lebih dari 0 MB)');
+      return;
+    }
+    setFileSizeLoading(true);
+    setFileSizeSaved(false);
+    try {
+      await api.post('/settings/bulk', { maxFileSize: String(parsed) });
+      setFileSizeSaved(true);
+      setTimeout(() => setFileSizeSaved(false), 2500);
+    } catch (error) {
+      console.error(error);
+      alert('Gagal menyimpan ukuran maksimal file.');
+    } finally {
+      setFileSizeLoading(false);
     }
   };
 
@@ -705,6 +734,51 @@ export default function AdvancedSettingsPage() {
               Tersimpan!
             </div>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Konfigurasi Ukuran File Upload */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Ukuran Maksimal File Upload</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-slate-500">
+            Atur batas ukuran maksimal file yang dapat diunggah oleh pengguna saat memproses tiket.
+          </p>
+          <div className="flex items-end gap-3 max-w-xs">
+            <div className="flex-1 space-y-2">
+              <Label>Ukuran Maksimal (MB)</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={maxFileSizeMb}
+                  onChange={(e) => setMaxFileSizeMb(e.target.value)}
+                  placeholder="10"
+                  className="w-28"
+                />
+                <span className="text-sm text-slate-500">MB</span>
+              </div>
+              <p className="text-xs text-slate-400">Default: 10 MB. Maks yang disarankan: 50 MB.</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button onClick={handleSaveFileSize} disabled={fileSizeLoading}>
+              {fileSizeLoading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4 mr-2" />
+              )}
+              {fileSizeLoading ? 'Menyimpan...' : 'Simpan'}
+            </Button>
+            {fileSizeSaved && (
+              <span className="flex items-center gap-1 text-green-600 text-sm">
+                <CheckCircle2 className="w-4 h-4" /> Tersimpan!
+              </span>
+            )}
+          </div>
         </CardContent>
       </Card>
 

@@ -747,15 +747,15 @@ export default function MyTasksPage() {
 
             {selectedTicket && selectedStep && shouldShowReceivedDate(selectedStep, selectedTicket) && (
               <div className="space-y-2">
-                <Label>Tanggal Terima Berkas <span className="text-red-500">*</span></Label>
+                <Label>Tanggal &amp; Jam Terima Berkas <span className="text-red-500">*</span></Label>
                 <Input
-                  type="date"
+                  type="datetime-local"
                   value={receivedDate}
                   onChange={(e) => setReceivedDate(e.target.value)}
                   disabled={loading}
                   className="w-full"
                 />
-                <p className="text-xs text-slate-500">Isi tanggal saat berkas perjalanan dinas diterima</p>
+                <p className="text-xs text-slate-500">Isi tanggal dan jam saat berkas perjalanan dinas diterima</p>
               </div>
             )}
 
@@ -810,7 +810,7 @@ export default function MyTasksPage() {
                 disabled={loading}
               />
               <p className="text-xs text-slate-500">
-                Format: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG (Max 10MB)
+                Format: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG
               </p>
             </div>
 

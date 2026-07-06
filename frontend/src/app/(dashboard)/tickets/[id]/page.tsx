@@ -375,11 +375,15 @@ export default function TicketDetailPage() {
               <p className="text-sm text-slate-500">Tanggal Penerimaan Berkas</p>
               {ticket.receivedDate ? (
                 <p className="font-medium">
-                  {new Date(ticket.receivedDate).toLocaleDateString('id-ID', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
+                  {new Date(ticket.receivedDate).toLocaleDateString('id-ID', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}{' '}
+                  {new Date(ticket.receivedDate).toLocaleTimeString('id-ID', {
+                    hour: '2-digit',
+                    minute: '2-digit',
                   })}
                 </p>
               ) : (
