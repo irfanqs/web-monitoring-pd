@@ -227,8 +227,8 @@ export default function StepsSettingsPage() {
                 isShared
                   ? 'bg-slate-300'
                   : isLs
-                  ? 'bg-blue-500'
-                  : 'bg-orange-400'
+                  ? 'bg-blue-700'
+                  : 'bg-orange-700'
               }`}
             />
             <span className="font-medium">{step.stepNumber}</span>
@@ -237,7 +237,7 @@ export default function StepsSettingsPage() {
         <TableCell>
           <div>
             <p className="font-medium">{step.stepName}</p>
-            <p className="text-xs text-slate-500 truncate max-w-xs">{step.description}</p>
+            <p className="text-xs text-slate-700 truncate max-w-xs">{step.description}</p>
           </div>
         </TableCell>
         <TableCell>
@@ -246,13 +246,13 @@ export default function StepsSettingsPage() {
         <TableCell>
           <div className="flex flex-wrap gap-1">
             {step.isLsOnly && (
-              <Badge className="bg-blue-500 text-xs text-white">LS Only</Badge>
+              <Badge className="bg-blue-700 text-xs text-white">LS Only</Badge>
             )}
             {step.isNonLsOnly && (
-              <Badge className="bg-orange-500 text-xs text-white">Non-LS Only</Badge>
+              <Badge className="bg-orange-700 text-xs text-white">Non-LS Only</Badge>
             )}
             {step.isParallel && (
-              <Badge className="bg-purple-500 text-xs text-white">Paralel</Badge>
+              <Badge className="bg-amber-100 text-amber-900 border border-amber-300 text-xs">Paralel</Badge>
             )}
             {isShared && (
               <Badge variant="secondary" className="text-xs">Semua</Badge>
@@ -284,7 +284,7 @@ export default function StepsSettingsPage() {
             <Button variant="ghost" size="sm" onClick={() => openEdit(step)}>
               <Pencil className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => handleDelete(step.id)} className="text-red-500">
+            <Button variant="ghost" size="sm" onClick={() => handleDelete(step.id)} className="text-red-700">
               <Trash2 className="w-4 h-4" />
             </Button>
           </div>
@@ -298,11 +298,11 @@ export default function StepsSettingsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Pengaturan Step</h1>
-          <p className="text-slate-500">Atur urutan dan konfigurasi step workflow</p>
+          <p className="text-slate-700">Atur urutan dan konfigurasi step workflow</p>
         </div>
         <Button
           onClick={openCreate}
-          className={activeTab === 'ls' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-orange-500 hover:bg-orange-600'}
+          className={activeTab === 'ls' ? 'bg-blue-700 hover:bg-blue-800' : 'bg-orange-700 hover:bg-orange-800'}
         >
           <Plus className="w-4 h-4 mr-2" />
           Tambah Step {activeTab === 'ls' ? 'LS' : 'Non-LS'}
@@ -315,15 +315,15 @@ export default function StepsSettingsPage() {
           onClick={() => setActiveTab('ls')}
           className={`flex items-center gap-2 px-6 py-3 text-sm font-semibold border-b-2 transition-colors ${
             activeTab === 'ls'
-              ? 'border-blue-600 text-blue-700 bg-blue-50'
-              : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+              ? 'border-blue-600 text-blue-800 bg-blue-50'
+              : 'border-transparent text-slate-700 hover:text-slate-700 hover:bg-slate-50'
           }`}
         >
           <Landmark className="w-4 h-4" />
           LS
           <span
             className={`ml-1 rounded-full px-2 py-0.5 text-xs font-bold ${
-              activeTab === 'ls' ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'
+              activeTab === 'ls' ? 'bg-blue-700 text-white' : 'bg-slate-200 text-slate-700'
             }`}
           >
             {lsSteps.length}
@@ -334,14 +334,14 @@ export default function StepsSettingsPage() {
           className={`flex items-center gap-2 px-6 py-3 text-sm font-semibold border-b-2 transition-colors ${
             activeTab === 'nonls'
               ? 'border-orange-500 text-orange-700 bg-orange-50'
-              : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+              : 'border-transparent text-slate-700 hover:text-slate-700 hover:bg-slate-50'
           }`}
         >
           <FileText className="w-4 h-4" />
           Non-LS
           <span
             className={`ml-1 rounded-full px-2 py-0.5 text-xs font-bold ${
-              activeTab === 'nonls' ? 'bg-orange-500 text-white' : 'bg-slate-200 text-slate-600'
+              activeTab === 'nonls' ? 'bg-orange-700 text-white' : 'bg-slate-200 text-slate-700'
             }`}
           >
             {nonLsSteps.length}
@@ -353,22 +353,22 @@ export default function StepsSettingsPage() {
       <Card className={`border-t-4 ${activeTab === 'ls' ? 'border-t-blue-500' : 'border-t-orange-500'}`}>
         <CardContent className="p-6">
           {/* Legenda warna */}
-          <div className="flex items-center gap-5 mb-4 text-xs text-slate-500">
+          <div className="flex items-center gap-5 mb-4 text-xs text-slate-700">
             {activeTab === 'ls' && (
               <span className="flex items-center gap-1.5">
-                <span className="inline-block w-3 h-3 rounded-full bg-blue-500" />
-                <span className="bg-blue-50 text-blue-700 border border-blue-200 rounded px-1.5 py-0.5 font-medium">LS Only</span>
+                <span className="inline-block w-3 h-3 rounded-full bg-blue-700" />
+                <span className="bg-blue-50 text-blue-800 border border-blue-200 rounded px-1.5 py-0.5 font-medium">LS Only</span>
               </span>
             )}
             {activeTab === 'nonls' && (
               <span className="flex items-center gap-1.5">
-                <span className="inline-block w-3 h-3 rounded-full bg-orange-400" />
+                <span className="inline-block w-3 h-3 rounded-full bg-orange-700" />
                 <span className="bg-orange-50 text-orange-700 border border-orange-200 rounded px-1.5 py-0.5 font-medium">Non-LS Only</span>
               </span>
             )}
             <span className="flex items-center gap-1.5">
               <span className="inline-block w-3 h-3 rounded-full bg-slate-300" />
-              <span className="bg-slate-50 text-slate-600 border border-slate-200 rounded px-1.5 py-0.5 font-medium">Berlaku untuk Semua Tipe</span>
+              <span className="bg-slate-50 text-slate-700 border border-slate-200 rounded px-1.5 py-0.5 font-medium">Berlaku untuk Semua Tipe</span>
             </span>
           </div>
           <Table>
@@ -385,7 +385,7 @@ export default function StepsSettingsPage() {
             <TableBody>
               {displayedSteps.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-slate-400 py-10">
+                  <TableCell colSpan={6} className="text-center text-slate-700 py-10">
                     Belum ada step untuk tipe ini.
                   </TableCell>
                 </TableRow>
@@ -478,14 +478,14 @@ export default function StepsSettingsPage() {
                 </label>
                 {form.isParallel && (
                   <div className="ml-6 mt-2">
-                    <Label className="text-sm text-slate-600">Nama Grup Paralel</Label>
+                    <Label className="text-sm text-slate-700">Nama Grup Paralel</Label>
                     <Input
                       value={form.parallelGroup}
                       onChange={(e) => setForm({ ...form, parallelGroup: e.target.value })}
                       placeholder="Contoh: A, B, atau nama grup lainnya"
                       className="mt-1"
                     />
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="text-xs text-slate-700 mt-1">
                       Step dengan grup yang sama akan berjalan bersamaan
                     </p>
                   </div>

@@ -314,13 +314,13 @@ export default function ArchivePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Arsip Perjalanan Dinas</h1>
-          <p className="text-slate-500">Perjalanan dinas yang sudah selesai diproses</p>
+          <p className="text-slate-700">Perjalanan dinas yang sudah selesai diproses</p>
         </div>
         <div className="flex gap-2">
           <Button
             onClick={handleExportExcel}
             disabled={filteredTickets.length === 0}
-            className="bg-green-600 hover:bg-green-700 text-white"
+            className="bg-green-700 hover:bg-green-800 text-white"
           >
             <FileSpreadsheet className="w-4 h-4 mr-2" />
             Export Excel
@@ -328,7 +328,7 @@ export default function ArchivePage() {
           <Button
             onClick={handleExportPDF}
             disabled={filteredTickets.length === 0}
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="bg-red-700 hover:bg-red-800 text-white"
           >
             <FileText className="w-4 h-4 mr-2" />
             Export PDF
@@ -344,8 +344,8 @@ export default function ArchivePage() {
             onClick={() => setSelectedYear(year)}
             className={`px-4 py-2 font-medium transition-colors ${
               selectedYear === year
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-slate-500 hover:text-slate-700'
+                ? 'border-b-2 border-blue-500 text-blue-800'
+                : 'text-slate-700 hover:text-slate-700'
             }`}
           >
             {year}
@@ -358,9 +358,9 @@ export default function ArchivePage() {
           {/* Filter & Sort */}
           <div className="flex items-end mb-4">
             <div className="flex-[6] pr-2">
-              <Label className="text-xs text-slate-500 mb-1.5 block">Cari Kegiatan</Label>
+              <Label className="text-xs text-slate-700 mb-1.5 block">Cari Kegiatan</Label>
               <div className="relative">
-                <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-700" />
                 <Input
                   placeholder="Nama kegiatan..."
                   value={searchName}
@@ -370,7 +370,7 @@ export default function ArchivePage() {
               </div>
             </div>
             <div className="flex-[3] pr-2">
-              <Label className="text-xs text-slate-500 mb-1.5 block">No. Surat Tugas</Label>
+              <Label className="text-xs text-slate-700 mb-1.5 block">No. Surat Tugas</Label>
               <Input
                 placeholder="Cari..."
                 value={searchSuratTugas}
@@ -379,7 +379,7 @@ export default function ArchivePage() {
               />
             </div>
             <div className="flex-[2] pr-2">
-              <Label className="text-xs text-slate-500 mb-1.5 block">Tgl Penerimaan Berkas</Label>
+              <Label className="text-xs text-slate-700 mb-1.5 block">Tgl Penerimaan Berkas</Label>
               <Input
                 type="date"
                 value={filterDate}
@@ -388,7 +388,7 @@ export default function ArchivePage() {
               />
             </div>
             <div className="flex-[1] pr-2">
-              <Label className="text-xs text-slate-500 mb-1.5 block">Bulan</Label>
+              <Label className="text-xs text-slate-700 mb-1.5 block">Bulan</Label>
               <Input
                 type="month"
                 value={filterMonth}
@@ -397,7 +397,7 @@ export default function ArchivePage() {
               />
             </div>
             <div className="flex-[1] pr-2">
-              <Label className="text-xs text-slate-500 mb-1.5 block">Urutkan</Label>
+              <Label className="text-xs text-slate-700 mb-1.5 block">Urutkan</Label>
               <Select value={sortBy} onValueChange={(v: 'name' | 'date' | 'ls' | 'month') => setSortBy(v)}>
                 <SelectTrigger className="h-9">
                   <SelectValue />
@@ -411,7 +411,7 @@ export default function ArchivePage() {
               </Select>
             </div>
             <div className="flex-[1]">
-              <Label className="text-xs text-slate-500 mb-1.5 block">Urutan</Label>
+              <Label className="text-xs text-slate-700 mb-1.5 block">Urutan</Label>
               <Select value={sortOrder} onValueChange={(v: 'asc' | 'desc') => setSortOrder(v)}>
                 <SelectTrigger className="h-9">
                   <SelectValue />
@@ -434,7 +434,7 @@ export default function ArchivePage() {
           </div>
 
           {filteredTickets.length === 0 ? (
-            <p className="text-center text-slate-500 py-8">
+            <p className="text-center text-slate-700 py-8">
               Tidak ada perjalanan dinas arsip
             </p>
           ) : (
@@ -465,7 +465,7 @@ export default function ArchivePage() {
                         <span className="group-hover:underline">{ticket.assignmentLetterNumber}</span>
                       </TableCell>
                       <TableCell className="border-r">
-                        <Badge variant={ticket.isLs ? 'default' : 'secondary'}>
+                        <Badge className={ticket.isLs ? 'bg-blue-700 text-white' : 'bg-orange-700 text-white'}>
                           {ticket.isLs ? 'LS' : 'Non-LS'}
                         </Badge>
                       </TableCell>
@@ -485,7 +485,7 @@ export default function ArchivePage() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleOpenEdit(ticket)}
-                                className="text-blue-500 hover:text-blue-700"
+                                className="text-blue-800 hover:text-blue-900"
                               >
                                 <Pencil className="w-4 h-4" />
                               </Button>
@@ -493,7 +493,7 @@ export default function ArchivePage() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleDelete(ticket.id)}
-                                className="text-red-500 hover:text-red-700"
+                                className="text-red-700 hover:text-red-900"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </Button>
@@ -508,7 +508,7 @@ export default function ArchivePage() {
             </div>
           )}
           <div className="relative flex items-center mt-10">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-700">
               Menampilkan {paginatedTickets.length} dari {filteredTickets.length} perjalanan dinas
             </p>
             {totalPages > 1 && (

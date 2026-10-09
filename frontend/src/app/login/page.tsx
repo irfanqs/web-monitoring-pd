@@ -54,16 +54,16 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Monitoring Dashboard</CardTitle>
-          <p className="text-slate-500">Perjalanan Dinas</p>
+          <p className="text-slate-700">Perjalanan Dinas</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg text-sm flex items-start gap-3">
-                <div className="text-red-500 font-bold mt-0.5">!</div>
+                <div className="text-red-700 font-bold mt-0.5">!</div>
                 <div>
                   <p className="font-medium">Login Gagal</p>
-                  <p className="text-red-600 mt-1">{error}</p>
+                  <p className="text-red-700 mt-1">{error}</p>
                 </div>
               </div>
             )}
@@ -93,7 +93,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-700 hover:text-slate-700 transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? (

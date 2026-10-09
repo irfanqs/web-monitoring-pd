@@ -6,6 +6,7 @@ import { userRouter } from './routes/users';
 import { dashboardRouter } from './routes/dashboard';
 import { stepsRouter } from './routes/steps';
 import settingsRouter from './routes/settings';
+import { statsRouter } from './routes/stats';
 import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
@@ -45,6 +46,7 @@ app.use('/api/users', userRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/steps', stepsRouter);
 app.use('/api/settings', settingsRouter);
+app.use('/api/stats', statsRouter);
 
 // Error handler
 app.use(errorHandler);

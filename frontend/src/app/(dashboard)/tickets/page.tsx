@@ -428,14 +428,14 @@ export default function TicketsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Perjalanan Dinas Aktif</h1>
-          <p className="text-slate-500">Perjalanan dinas yang sedang dalam proses</p>
+          <p className="text-slate-700">Perjalanan dinas yang sedang dalam proses</p>
         </div>
         <div className="flex gap-2">
           {/* Export Buttons */}
           <Button
             onClick={handleExportExcel}
             disabled={filteredTickets.length === 0}
-            className="bg-green-600 hover:bg-green-700 text-white"
+            className="bg-green-700 hover:bg-green-800 text-white"
           >
             <FileSpreadsheet className="w-4 h-4 mr-2" />
             Export Excel
@@ -443,7 +443,7 @@ export default function TicketsPage() {
           <Button
             onClick={handleExportPDF}
             disabled={filteredTickets.length === 0}
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="bg-red-700 hover:bg-red-800 text-white"
           >
             <FileText className="w-4 h-4 mr-2" />
             Export PDF
@@ -497,7 +497,7 @@ export default function TicketsPage() {
                             />
                           );
                         }
-                        return part ? <span key={idx} className="text-sm text-slate-500 whitespace-nowrap">{part}</span> : null;
+                        return part ? <span key={idx} className="text-sm text-slate-700 whitespace-nowrap">{part}</span> : null;
                       })}
                     </div>
                   ) : (
@@ -509,7 +509,7 @@ export default function TicketsPage() {
                     />
                   )}
                   {template && buildLetterNumber() && (
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-xs text-slate-700 mt-1">
                       Preview: <span className="font-mono">{buildLetterNumber()}</span>
                     </p>
                   )}
@@ -571,9 +571,9 @@ export default function TicketsPage() {
         <CardContent className="px-4">
           <div className="flex items-end mb-4">
             <div className="flex-[6] pr-2">
-              <Label className="text-xs text-slate-500 mb-1.5 block">Cari Kegiatan</Label>
+              <Label className="text-xs text-slate-700 mb-1.5 block">Cari Kegiatan</Label>
               <div className="relative">
-                <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-700" />
                 <Input
                   placeholder="Nama kegiatan..."
                   value={searchName}
@@ -583,7 +583,7 @@ export default function TicketsPage() {
               </div>
             </div>
             <div className="flex-[3] pr-2">
-              <Label className="text-xs text-slate-500 mb-1.5 block">No. Surat Tugas</Label>
+              <Label className="text-xs text-slate-700 mb-1.5 block">No. Surat Tugas</Label>
               <Input
                 placeholder="Cari..."
                 value={searchSuratTugas}
@@ -592,7 +592,7 @@ export default function TicketsPage() {
               />
             </div>
             <div className="flex-[2] pr-2">
-              <Label className="text-xs text-slate-500 mb-1.5 block">Tgl Penerimaan Berkas</Label>
+              <Label className="text-xs text-slate-700 mb-1.5 block">Tgl Penerimaan Berkas</Label>
               <Input
                 type="date"
                 value={filterDate}
@@ -601,7 +601,7 @@ export default function TicketsPage() {
               />
             </div>
             <div className="flex-[1] pr-2">
-              <Label className="text-xs text-slate-500 mb-1.5 block">Bulan</Label>
+              <Label className="text-xs text-slate-700 mb-1.5 block">Bulan</Label>
               <Input
                 type="month"
                 value={filterMonth}
@@ -610,7 +610,7 @@ export default function TicketsPage() {
               />
             </div>
             <div className="flex-[1] pr-2">
-              <Label className="text-xs text-slate-500 mb-1.5 block">Urutkan</Label>
+              <Label className="text-xs text-slate-700 mb-1.5 block">Urutkan</Label>
               <Select value={sortBy} onValueChange={(v: 'name' | 'date' | 'ls' | 'status' | 'month') => setSortBy(v)}>
                 <SelectTrigger className="h-9">
                   <SelectValue />
@@ -625,7 +625,7 @@ export default function TicketsPage() {
               </Select>
             </div>
             <div className="flex-[1]">
-              <Label className="text-xs text-slate-500 mb-1.5 block">Urutan</Label>
+              <Label className="text-xs text-slate-700 mb-1.5 block">Urutan</Label>
               <Select value={sortOrder} onValueChange={(v: 'asc' | 'desc') => setSortOrder(v)}>
                 <SelectTrigger className="h-9">
                   <SelectValue />
@@ -689,11 +689,11 @@ export default function TicketsPage() {
                     <TableCell className="border-r whitespace-nowrap">
                       {ticket.receivedDate
                         ? new Date(ticket.receivedDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
-                        : <span className="text-slate-400 text-xs italic">Belum diisi</span>
+                        : <span className="text-slate-700 text-xs italic">Belum diisi</span>
                       }
                     </TableCell>
                     <TableCell className="border-r">
-                      <Badge variant={ticket.isLs ? 'default' : 'secondary'}>
+                      <Badge className={ticket.isLs ? 'bg-blue-700 text-white' : 'bg-orange-700 text-white'}>
                         {ticket.isLs ? 'LS' : 'Non-LS'}
                       </Badge>
                     </TableCell>
@@ -715,17 +715,17 @@ export default function TicketsPage() {
                     <TableCell className="border-r">
                       <div className="flex flex-col gap-1">
                         {hasReturnMessage ? (
-                          <Badge className="bg-red-500 text-white text-xs">
+                          <Badge className="bg-red-700 text-white text-xs">
                             Dikembalikan
                           </Badge>
                         ) : (
                           <Badge
                             className={
                               ticket.status === 'completed'
-                                ? 'bg-green-500 hover:bg-green-600 text-white'
+                                ? 'bg-green-700 hover:bg-green-800 text-white'
                                 : ticket.status === 'in_progress'
-                                ? 'bg-blue-500 hover:bg-blue-600 text-white'
-                                : 'bg-yellow-300 hover:bg-amber-300 text-slate-900'
+                                ? 'bg-blue-700 hover:bg-blue-800 text-white'
+                                : 'bg-amber-300 hover:bg-amber-400 text-slate-900'
                             }
                           >
                             {ticket.status === 'completed'
@@ -750,7 +750,7 @@ export default function TicketsPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleOpenEdit(ticket)}
-                              className="text-blue-500 hover:text-blue-700"
+                              className="text-blue-800 hover:text-blue-900"
                             >
                               <Pencil className="w-4 h-4" />
                             </Button>
@@ -758,7 +758,7 @@ export default function TicketsPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDelete(ticket.id)}
-                              className="text-red-500 hover:text-red-700"
+                              className="text-red-700 hover:text-red-900"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -773,7 +773,7 @@ export default function TicketsPage() {
             </Table>
           </div>
           <div className="relative flex items-center mt-10">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-700">
               Menampilkan {paginatedTickets.length} dari {filteredTickets.length} perjalanan dinas
             </p>
             {totalPages > 1 && (

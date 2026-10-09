@@ -83,7 +83,7 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-slate-500">Selamat datang, {user?.name}</p>
+        <p className="text-slate-700">Selamat datang, {user?.name}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -93,7 +93,7 @@ export default function DashboardPage() {
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total PD</CardTitle>
-            <Briefcase className="h-4 w-4 text-slate-500" />
+            <Briefcase className="h-4 w-4 text-slate-700" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total}</div>
@@ -102,11 +102,11 @@ export default function DashboardPage() {
 
         <Card
           onClick={() => setActiveFilter('pending')}
-          className={`cursor-pointer transition ${activeFilter === 'pending' ? 'ring-2 ring-yellow-500 bg-yellow-50' : 'hover:bg-slate-50'}`}
+          className={`cursor-pointer transition ${activeFilter === 'pending' ? 'ring-2 ring-amber-500 bg-amber-50' : 'hover:bg-slate-50'}`}
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <AlertCircle className="h-4 w-4 text-yellow-500" />
+            <AlertCircle className="h-4 w-4 text-amber-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.pending}</div>
@@ -119,7 +119,7 @@ export default function DashboardPage() {
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-            <Clock className="h-4 w-4 text-blue-500" />
+            <Clock className="h-4 w-4 text-blue-800" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.inProgress}</div>
@@ -132,7 +132,7 @@ export default function DashboardPage() {
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Completed</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
+            <CheckCircle className="h-4 w-4 text-green-800" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.completed}</div>
@@ -147,7 +147,7 @@ export default function DashboardPage() {
         <CardContent>
           <div className="space-y-4">
             {filteredTickets.length === 0 ? (
-              <div className="p-4 bg-slate-50 rounded-lg text-sm text-slate-500">
+              <div className="p-4 bg-slate-50 rounded-lg text-sm text-slate-700">
                 Tidak ada PD dengan status ini.
               </div>
             ) : (
@@ -158,19 +158,19 @@ export default function DashboardPage() {
                 >
                   <div>
                     <p className="font-medium">{ticket.assignmentLetterNumber}</p>
-                    <p className="text-sm text-slate-500">{ticket.activityName.replace(/\s+/g, ' ').trim()}</p>
+                    <p className="text-sm text-slate-700">{ticket.activityName.replace(/\s+/g, ' ').trim()}</p>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-sm text-slate-500">
+                    <span className="text-sm text-slate-700">
                       Step {ticket.currentStep > getMaxStep() ? 'Selesai' : `${ticket.currentStep}/${getTotalSteps()}`}
                     </span>
                     <Badge
                       className={
                         ticket.status === 'completed'
-                          ? 'bg-green-500 hover:bg-green-600 text-white'
+                          ? 'bg-green-700 hover:bg-green-800 text-white'
                           : ticket.status === 'in_progress'
-                          ? 'bg-blue-500 hover:bg-blue-600 text-white'
-                          : 'bg-yellow-300 hover:bg-amber-300 text-slate-900'
+                          ? 'bg-blue-700 hover:bg-blue-800 text-white'
+                          : 'bg-amber-300 hover:bg-amber-400 text-slate-900'
                       }
                     >
                       {ticket.status === 'completed'
