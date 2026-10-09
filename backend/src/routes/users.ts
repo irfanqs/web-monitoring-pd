@@ -25,6 +25,20 @@ router.get('/', authenticate, requireRole('admin', 'supervisor'), async (req: Au
   }
 });
 
+// Get employee names per role (any logged-in user), used to show the PIC of every step
+router.get('/pic', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const users = await prisma.user.findMany({
+      where: { systemRole: 'employee', employeeRole: { not: null } },
+      select: { id: true, name: true, employeeRole: true },
+      orderBy: { name: 'asc' },
+    });
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch PIC names' });
+  }
+});
+
 // Create user (Admin only)
 router.post('/', authenticate, requireRole('admin'), async (req: AuthRequest, res: Response) => {
   try {

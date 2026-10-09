@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dialog';
 import { ProgressIndicator } from '@/components/ProgressIndicator';
 import { EMPLOYEE_ROLES, STEP_ROLES } from '@/lib/constants';
+import { usePicNames } from '@/lib/usePicNames';
 import { Upload, Download, FileText, Eye, RotateCcw } from 'lucide-react';
 
 interface Ticket {
@@ -82,6 +83,7 @@ export default function MyTasksPage() {
   const [returning, setReturning] = useState(false);
   
   const { user } = useAuthStore();
+  const { getPicNames } = usePicNames();
 
   const fetchTasks = () => {
     api.get('/tickets/my-tasks').then((res) => setTickets(res.data));
@@ -345,7 +347,7 @@ export default function MyTasksPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Tugas Saya</h1>
-        <p className="text-slate-500">
+        <p className="text-slate-700">
           Role: {user?.employeeRole && EMPLOYEE_ROLES[user.employeeRole]}
         </p>
       </div>
@@ -356,8 +358,8 @@ export default function MyTasksPage() {
           onClick={() => setActiveTab('current')}
           className={`px-4 py-2 font-medium transition-colors ${
             activeTab === 'current'
-              ? 'text-blue-600 border-b-2 border-blue-600'
-              : 'text-slate-500 hover:text-slate-700'
+              ? 'text-blue-800 border-b-2 border-blue-600'
+              : 'text-slate-700 hover:text-slate-700'
           }`}
         >
           Tugas Aktif ({tickets.length})
@@ -366,8 +368,8 @@ export default function MyTasksPage() {
           onClick={() => setActiveTab('history')}
           className={`px-4 py-2 font-medium transition-colors ${
             activeTab === 'history'
-              ? 'text-blue-600 border-b-2 border-blue-600'
-              : 'text-slate-500 hover:text-slate-700'
+              ? 'text-blue-800 border-b-2 border-blue-600'
+              : 'text-slate-700 hover:text-slate-700'
           }`}
         >
           Riwayat ({historyTickets.length})
@@ -379,7 +381,7 @@ export default function MyTasksPage() {
         <>
           {tickets.length === 0 ? (
             <Card>
-              <CardContent className="py-8 text-center text-slate-500">
+              <CardContent className="py-8 text-center text-slate-700">
                 Tidak ada tugas yang perlu diproses saat ini
               </CardContent>
             </Card>
@@ -408,21 +410,21 @@ export default function MyTasksPage() {
                     <CardTitle className="flex items-center gap-2">
                       {ticket.assignmentLetterNumber}
                       {hasReturnMessage && (
-                        <Badge className="bg-red-500 text-white">
+                        <Badge className="bg-red-700 text-white">
                           DIKEMBALIKAN
                         </Badge>
                       )}
                     </CardTitle>
-                    <p className="text-slate-500">{ticket.activityName.replace(/\s+/g, ' ').trim()}</p>
+                    <p className="text-slate-700">{ticket.activityName.replace(/\s+/g, ' ').trim()}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge className={ticket.isLs 
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white border-blue-700' 
-                      : 'bg-purple-600 hover:bg-purple-700 text-white border-purple-700'
+                      ? 'bg-blue-700 hover:bg-blue-800 text-white border-blue-800'
+                      : 'bg-orange-700 hover:bg-orange-800 text-white border-orange-800'
                     }>
                       {ticket.isLs ? 'LS' : 'Non-LS'}
                     </Badge>
-                    <Badge variant="outline" className={ticket.isLs ? 'border-blue-300' : 'border-purple-300'}>
+                    <Badge variant="outline" className={ticket.isLs ? 'border-blue-300 text-blue-900' : 'border-orange-300 text-orange-900'}>
                       {isParallelStep ? `Step ${userStep} (Paralel)` : `Step ${ticket.currentStep}`}
                     </Badge>
                   </div>
@@ -438,7 +440,7 @@ export default function MyTasksPage() {
                       <p className="text-sm text-red-800 leading-relaxed whitespace-pre-wrap line-clamp-2">
                         {returnMsg?.notes}
                       </p>
-                      <p className="text-xs text-red-600 mt-1">
+                      <p className="text-xs text-red-700 mt-1">
                         Klik "Proses PD" untuk melihat detail dan mengerjakan ulang
                       </p>
                     </div>
@@ -446,7 +448,7 @@ export default function MyTasksPage() {
                 })()}
                 
                 <div>
-                  <p className="text-sm text-slate-500">No. Surat Tugas</p>
+                  <p className="text-sm text-slate-700">No. Surat Tugas</p>
                   <p className="font-medium">{ticket.assignmentLetterNumber}</p>
                 </div>
 
@@ -456,10 +458,11 @@ export default function MyTasksPage() {
                   compact
                   isLs={ticket.isLs}
                   stepConfigs={stepConfigs}
+                  getStepPicName={(_, roleCode) => getPicNames(ticket, roleCode)}
                 />
 
                 <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-                  <p className="text-sm text-slate-500 mb-2">Jobdesk Anda (Step {userStep}):</p>
+                  <p className="text-sm text-slate-700 mb-2">Jobdesk Anda (Step {userStep}):</p>
                   <p className="text-slate-700 leading-relaxed">
                     {userStep !== null
                       ? (() => {
@@ -529,7 +532,7 @@ export default function MyTasksPage() {
         <>
           {historyTickets.length === 0 ? (
             <Card>
-              <CardContent className="py-8 text-center text-slate-500">
+              <CardContent className="py-8 text-center text-slate-700">
                 Belum ada riwayat perjalanan dinas yang dikerjakan
               </CardContent>
             </Card>
@@ -544,18 +547,18 @@ export default function MyTasksPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <CardTitle>{ticket.assignmentLetterNumber}</CardTitle>
-                          <p className="text-slate-500">{ticket.activityName.replace(/\s+/g, ' ').trim()}</p>
+                          <p className="text-slate-700">{ticket.activityName.replace(/\s+/g, ' ').trim()}</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge className={ticket.isLs 
-                            ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                            : 'bg-purple-600 hover:bg-purple-700 text-white'
+                            ? 'bg-blue-700 hover:bg-blue-800 text-white'
+                            : 'bg-orange-700 hover:bg-orange-800 text-white'
                           }>
                             {ticket.isLs ? '🏦 LS' : '📋 Non-LS'}
                           </Badge>
                           <Badge className={
                             ticket.status === 'completed' 
-                              ? 'bg-green-500 text-white' 
+                              ? 'bg-green-700 text-white' 
                               : 'bg-slate-500 text-white'
                           }>
                             {ticket.status === 'completed' ? '✓ Selesai' : '⏳ Dalam Proses'}
@@ -565,12 +568,12 @@ export default function MyTasksPage() {
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div>
-                        <p className="text-sm text-slate-500">No. Surat Tugas</p>
+                        <p className="text-sm text-slate-700">No. Surat Tugas</p>
                         <p className="font-medium">{ticket.assignmentLetterNumber}</p>
                       </div>
 
                       <div>
-                        <p className="text-sm text-slate-500 mb-2">Step yang Saya Kerjakan:</p>
+                        <p className="text-sm text-slate-700 mb-2">Step yang Saya Kerjakan:</p>
                         <div className="flex flex-wrap gap-2">
                           {ticket.histories
                             .filter(h => h.processorName === user?.name)
@@ -584,7 +587,7 @@ export default function MyTasksPage() {
 
                       {myHistory && (
                         <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                          <p className="text-xs text-slate-500">Diproses pada:</p>
+                          <p className="text-xs text-slate-700">Diproses pada:</p>
                           <p className="text-sm font-medium">
                             {new Date(myHistory.processedAt).toLocaleDateString('id-ID', {
                               day: 'numeric',
@@ -603,6 +606,7 @@ export default function MyTasksPage() {
                         compact
                         isLs={ticket.isLs}
                         stepConfigs={stepConfigs}
+                        getStepPicName={(_, roleCode) => getPicNames(ticket, roleCode)}
                       />
 
                       <Link href={`/tickets/${ticket.id}`}>
@@ -648,7 +652,7 @@ export default function MyTasksPage() {
           <div className="space-y-4">
 
             <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-              <p className="text-sm text-slate-600 leading-relaxed">
+              <p className="text-sm text-slate-700 leading-relaxed">
                 {selectedStep === 1 && 'Membuat rekapitulasi biaya perjalanan dinas berdasarkan Surat Tugas dan Nota Dinas Anggaran'}
                 {selectedStep === 2 && 'Membuat daftar nominatif biaya perjalanan dinas'}
                 {selectedStep === 3 && 'Memasukkan nilai permohonan anggaran biaya ke aplikasi SAKTI'}
@@ -697,14 +701,14 @@ export default function MyTasksPage() {
                 return (
                   <div className="bg-red-50 p-4 rounded-lg border-2 border-red-300">
                     <div className="flex items-start gap-3">
-                      <div className="bg-red-500 text-white rounded-full p-2 mt-0.5">
+                      <div className="bg-red-700 text-white rounded-full p-2 mt-0.5">
                         <RotateCcw className="w-5 h-5" />
                       </div>
                       <div className="flex-1">
                         <p className="text-sm text-red-800 leading-relaxed whitespace-pre-wrap font-medium">
                           {returnMessage.notes}
                         </p>
-                        <p className="text-xs text-red-600 mt-3 pt-2 border-t border-red-200">
+                        <p className="text-xs text-red-700 mt-3 pt-2 border-t border-red-200">
                           Dikembalikan oleh: {returnMessage.processorName.replace('[DIKEMBALIKAN] ', '')} • {new Date(returnMessage.processedAt).toLocaleString('id-ID')}
                         </p>
                       </div>
@@ -724,17 +728,17 @@ export default function MyTasksPage() {
 
               if (previousHistory?.notes) {
                 return (
-                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                     <div className="flex items-start gap-2">
-                      <FileText className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
+                      <FileText className="w-5 h-5 text-blue-800 mt-0.5 flex-shrink-0" />
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-purple-900 mb-1">
+                        <p className="text-sm font-medium text-blue-950 mb-1">
                           Catatan dari Step {previousHistory.stepNumber}
                         </p>
-                        <p className="text-sm text-purple-700 leading-relaxed whitespace-pre-wrap">
+                        <p className="text-sm text-blue-900 leading-relaxed whitespace-pre-wrap">
                           {previousHistory.notes}
                         </p>
-                        <p className="text-xs text-purple-600 mt-2">
+                        <p className="text-xs text-blue-900 mt-2">
                           Oleh: {previousHistory.processorName} • {new Date(previousHistory.processedAt).toLocaleString('id-ID')}
                         </p>
                       </div>
@@ -747,7 +751,7 @@ export default function MyTasksPage() {
 
             {selectedTicket && selectedStep && shouldShowReceivedDate(selectedStep, selectedTicket) && (
               <div className="space-y-2">
-                <Label>Tanggal &amp; Jam Terima Berkas <span className="text-red-500">*</span></Label>
+                <Label>Tanggal &amp; Jam Terima Berkas <span className="text-red-700">*</span></Label>
                 <Input
                   type="datetime-local"
                   value={receivedDate}
@@ -755,13 +759,13 @@ export default function MyTasksPage() {
                   disabled={loading}
                   className="w-full"
                 />
-                <p className="text-xs text-slate-500">Isi tanggal dan jam saat berkas perjalanan dinas diterima</p>
+                <p className="text-xs text-slate-700">Isi tanggal dan jam saat berkas perjalanan dinas diterima</p>
               </div>
             )}
 
             {selectedTicket && selectedStep && shouldShowSelisih(selectedStep, selectedTicket) && (
               <div className="space-y-2">
-                <Label>Selisih Anggaran <span className="text-red-500">*</span></Label>
+                <Label>Selisih Anggaran <span className="text-red-700">*</span></Label>
                 <div className="flex flex-col gap-2">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
@@ -806,10 +810,10 @@ export default function MyTasksPage() {
                 type="file"
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
                 accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
-                className="file:pt-1 file:pr-2 file:font-normal file:text-gray-600"
+                className="file:pt-1 file:pr-2 file:font-normal file:text-slate-700"
                 disabled={loading}
               />
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-700">
                 Format: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG
               </p>
             </div>
@@ -839,7 +843,7 @@ export default function MyTasksPage() {
       <Dialog open={showReturnDialog} onOpenChange={setShowReturnDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-red-600 flex items-center gap-2">
+            <DialogTitle className="text-red-700 flex items-center gap-2">
               <RotateCcw className="w-5 h-5" />
               Kembalikan ke Step Sebelumnya
             </DialogTitle>
@@ -857,13 +861,13 @@ export default function MyTasksPage() {
 
             {returnTicket && (
               <div className="bg-slate-50 p-3 rounded-lg">
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-slate-700">
                   <strong>Nomor PD:</strong> {returnTicket.ticketNumber}
                 </p>
-                <p className="text-sm text-slate-600 mt-1">
+                <p className="text-sm text-slate-700 mt-1">
                   <strong>Aktivitas:</strong> {returnTicket.activityName.replace(/\s+/g, ' ').trim()}
                 </p>
-                <p className="text-sm text-slate-600 mt-1">
+                <p className="text-sm text-slate-700 mt-1">
                   <strong>Step Saat Ini:</strong> {returnTicket.currentStep}
                 </p>
               </div>
@@ -871,7 +875,7 @@ export default function MyTasksPage() {
 
             <div className="space-y-2">
               <Label className="text-red-700">
-                Alasan Pengembalian <span className="text-red-500">*</span>
+                Alasan Pengembalian <span className="text-red-700">*</span>
               </Label>
               <Textarea
                 value={returnNotes}
@@ -880,7 +884,7 @@ export default function MyTasksPage() {
                 rows={4}
                 className="border-red-300 focus:border-red-500 focus:ring-red-500"
               />
-              <p className="text-xs text-red-600">
+              <p className="text-xs text-red-700">
                 Catatan ini akan dicatat dalam riwayat dan dilihat oleh petugas step sebelumnya.
               </p>
             </div>

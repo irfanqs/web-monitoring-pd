@@ -16,6 +16,7 @@ import {
   ChevronRight,
   User,
   Wrench,
+  Timer,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EMPLOYEE_ROLES, SYSTEM_ROLES } from '@/lib/constants';
@@ -45,6 +46,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/tickets', label: 'PD Aktif', icon: Ticket },
     { href: '/archive', label: 'Arsip', icon: Archive },
+    { href: '/statistics', label: 'Statistik Waktu', icon: Timer },
   ];
 
   const employeeLinks = [

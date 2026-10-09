@@ -310,7 +310,7 @@ export default function AdvancedSettingsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Pengaturan Lanjutan</h1>
-        <p className="text-slate-500">Konfigurasi sistem aplikasi</p>
+        <p className="text-slate-700">Konfigurasi sistem aplikasi</p>
       </div>
 
       <Card>
@@ -318,7 +318,7 @@ export default function AdvancedSettingsPage() {
           <CardTitle>Format Nomor Surat Tugas</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-700">
             Buat template nomor surat dengan placeholder. Gunakan <code className="bg-slate-100 px-1 rounded">{'{1}'}</code>, <code className="bg-slate-100 px-1 rounded">{'{2}'}</code>, dst untuk bagian yang diisi user. Teks lainnya akan menjadi bagian tetap.
           </p>
           
@@ -329,24 +329,24 @@ export default function AdvancedSettingsPage() {
               onChange={(e) => setTemplate(e.target.value)}
               placeholder="Contoh: {1}/KPPN/{2}/2026"
             />
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-700">
               Contoh format: {'{1}'}/KPPN/{'{2}'}/2026 atau ST-{'{1}'}/{'{2}'}/BLM
             </p>
           </div>
 
           {template && (
             <div className="bg-slate-50 p-4 rounded-lg border space-y-3">
-              <p className="text-sm text-slate-500">Preview User Input:</p>
+              <p className="text-sm text-slate-700">Preview User Input:</p>
               <div className="flex flex-wrap items-center gap-1">
                 {getPreviewParts().map((part, idx) => {
                   if (part.match(/^\{\d+\}$/)) {
                     return (
-                      <span key={idx} className="font-mono bg-blue-100 text-blue-700 px-2 py-1 rounded border border-blue-200">
+                      <span key={idx} className="font-mono bg-blue-100 text-blue-800 px-2 py-1 rounded border border-blue-200">
                         {previewValues[part] || part}
                       </span>
                     );
                   }
-                  return <span key={idx} className="text-slate-600">{part}</span>;
+                  return <span key={idx} className="text-slate-700">{part}</span>;
                 })}
               </div>
               <p className="text-sm mt-2">
@@ -360,7 +360,7 @@ export default function AdvancedSettingsPage() {
               <Save className="w-4 h-4 mr-2" />
               {loading ? 'Menyimpan...' : 'Simpan'}
             </Button>
-            {saved && <span className="text-green-600 text-sm">Tersimpan!</span>}
+            {saved && <span className="text-green-800 text-sm">Tersimpan!</span>}
           </div>
         </CardContent>
       </Card>
@@ -371,9 +371,9 @@ export default function AdvancedSettingsPage() {
           <CardTitle>Konfigurasi Selisih Anggaran</CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-700">
             Atur pada <strong>step mana</strong> dan <strong>role mana</strong> fitur pilihan{' '}
-            <span className="font-semibold text-blue-700">Selisih Nihil / Selisih Kurang / Selisih Lebih</span>{' '}
+            <span className="font-semibold text-blue-800">Selisih Nihil / Selisih Kurang / Selisih Lebih</span>{' '}
             akan muncul saat memproses tiket, beserta tipe tiket yang berlaku.
           </p>
 
@@ -384,7 +384,7 @@ export default function AdvancedSettingsPage() {
             </div>
           ) : (
             <div className="space-y-2">
-              <Label className="text-slate-600">Rule yang Aktif</Label>
+              <Label className="text-slate-700">Rule yang Aktif</Label>
               <div className="divide-y divide-slate-100 border rounded-lg overflow-hidden">
                 {selisihRules.map((rule, idx) => {
                   const stepInfo = steps.find(s => s.stepNumber === rule.stepNumber);
@@ -401,10 +401,10 @@ export default function AdvancedSettingsPage() {
                           variant="outline"
                           className={`font-mono ${
                             stepInfo?.isLsOnly
-                              ? 'border-blue-300 text-blue-700 bg-blue-50'
+                              ? 'border-blue-300 text-blue-800 bg-blue-50'
                               : stepInfo?.isNonLsOnly
                               ? 'border-orange-300 text-orange-700 bg-orange-50'
-                              : 'border-slate-300 text-slate-600'
+                              : 'border-slate-300 text-slate-700'
                           }`}
                         >
                           Step {rule.stepNumber}
@@ -415,15 +415,15 @@ export default function AdvancedSettingsPage() {
                           {getRoleLabel(rule.role)}
                         </span>
                         {stepInfo && (
-                          <span className="text-xs text-slate-400">({stepInfo.stepName})</span>
+                          <span className="text-xs text-slate-700">({stepInfo.stepName})</span>
                         )}
                         <Badge
                           className={
                             rule.ticketType === 'ls'
-                              ? 'bg-blue-100 text-blue-700 border-blue-200'
+                              ? 'bg-blue-100 text-blue-800 border-blue-200'
                               : rule.ticketType === 'non_ls'
                               ? 'bg-orange-100 text-orange-700 border-orange-200'
-                              : 'bg-slate-100 text-slate-600 border-slate-200'
+                              : 'bg-slate-100 text-slate-700 border-slate-200'
                           }
                           variant="outline"
                         >
@@ -435,7 +435,7 @@ export default function AdvancedSettingsPage() {
                         size="sm"
                         onClick={() => handleRemoveRule(idx)}
                         disabled={selisihLoading}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        className="text-red-700 hover:text-red-900 hover:bg-red-50"
                       >
                         {selisihLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                       </Button>
@@ -451,7 +451,7 @@ export default function AdvancedSettingsPage() {
             <Label className="text-slate-700 font-semibold">Tambah Rule Baru</Label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-1">
-                <Label className="text-xs text-slate-500">Step</Label>
+                <Label className="text-xs text-slate-700">Step</Label>
                 <Select value={newRuleStep} onValueChange={(v) => {
                   setNewRuleStep(v);
                 }}>
@@ -465,18 +465,18 @@ export default function AdvancedSettingsPage() {
                           <span
                             className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${
                               s.isLsOnly
-                                ? 'bg-blue-500'
+                                ? 'bg-blue-700'
                                 : s.isNonLsOnly
-                                ? 'bg-orange-400'
+                                ? 'bg-orange-700'
                                 : 'bg-slate-400'
                             }`}
                           />
                           Step {s.stepNumber} – {s.stepName}
                           {s.isLsOnly && (
-                            <span className="ml-1 text-[10px] font-semibold text-blue-600 bg-blue-50 border border-blue-200 rounded px-1">LS</span>
+                            <span className="ml-1 text-[10px] font-semibold text-blue-800 bg-blue-50 border border-blue-200 rounded px-1">LS</span>
                           )}
                           {s.isNonLsOnly && (
-                            <span className="ml-1 text-[10px] font-semibold text-orange-600 bg-orange-50 border border-orange-200 rounded px-1">Non-LS</span>
+                            <span className="ml-1 text-[10px] font-semibold text-orange-800 bg-orange-50 border border-orange-200 rounded px-1">Non-LS</span>
                           )}
                         </span>
                       </SelectItem>
@@ -485,20 +485,20 @@ export default function AdvancedSettingsPage() {
                 </Select>
                 {/* Keterangan warna */}
                 <div className="flex items-center gap-3 pt-1">
-                  <span className="flex items-center gap-1 text-[11px] text-slate-400">
-                    <span className="inline-block w-2 h-2 rounded-full bg-blue-500" /> LS Only
+                  <span className="flex items-center gap-1 text-[11px] text-slate-700">
+                    <span className="inline-block w-2 h-2 rounded-full bg-blue-700" /> LS Only
                   </span>
-                  <span className="flex items-center gap-1 text-[11px] text-slate-400">
-                    <span className="inline-block w-2 h-2 rounded-full bg-orange-400" /> Non-LS Only
+                  <span className="flex items-center gap-1 text-[11px] text-slate-700">
+                    <span className="inline-block w-2 h-2 rounded-full bg-orange-700" /> Non-LS Only
                   </span>
-                  <span className="flex items-center gap-1 text-[11px] text-slate-400">
+                  <span className="flex items-center gap-1 text-[11px] text-slate-700">
                     <span className="inline-block w-2 h-2 rounded-full bg-slate-400" /> Semua
                   </span>
                 </div>
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs text-slate-500">Role</Label>
+                <Label className="text-xs text-slate-700">Role</Label>
                 <Select value={newRuleRole} onValueChange={setNewRuleRole}>
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih role" />
@@ -512,7 +512,7 @@ export default function AdvancedSettingsPage() {
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs text-slate-500">Berlaku untuk</Label>
+                <Label className="text-xs text-slate-700">Berlaku untuk</Label>
                 <Select
                   value={newRuleTicketType}
                   onValueChange={(v) => setNewRuleTicketType(v as 'all' | 'ls' | 'non_ls')}
@@ -538,7 +538,7 @@ export default function AdvancedSettingsPage() {
               {selisihLoading ? 'Menyimpan...' : 'Tambah Rule'}
             </Button>
             {selisihSaved && (
-              <div className="flex items-center gap-1 text-green-600 text-sm mt-2">
+              <div className="flex items-center gap-1 text-green-800 text-sm mt-2">
                 <CheckCircle2 className="w-4 h-4" />
                 Tersimpan!
               </div>
@@ -553,8 +553,8 @@ export default function AdvancedSettingsPage() {
           <CardTitle>Konfigurasi Tanggal Terima Berkas</CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
-          <p className="text-sm text-slate-500">
-            Atur pada <strong>step mana</strong> field <span className="font-semibold text-blue-700">Tanggal Terima Berkas</span> akan muncul saat memproses tiket, terpisah untuk tiket <span className="font-semibold text-blue-600">LS</span> dan <span className="font-semibold text-orange-600">Non-LS</span>.
+          <p className="text-sm text-slate-700">
+            Atur pada <strong>step mana</strong> field <span className="font-semibold text-blue-800">Tanggal Terima Berkas</span> akan muncul saat memproses tiket, terpisah untuk tiket <span className="font-semibold text-blue-800">LS</span> dan <span className="font-semibold text-orange-800">Non-LS</span>.
             Jika tidak dikonfigurasi, field tidak akan muncul.
           </p>
 
@@ -563,10 +563,10 @@ export default function AdvancedSettingsPage() {
             <div className="space-y-2 border rounded-lg p-4 bg-blue-50 border-blue-200">
               <div className="flex items-center justify-between mb-1">
                 <Label className="font-semibold text-blue-800">Tiket LS</Label>
-                <Badge className="bg-blue-100 text-blue-700 border-blue-200" variant="outline">LS</Badge>
+                <Badge className="bg-blue-100 text-blue-800 border-blue-200" variant="outline">LS</Badge>
               </div>
               <div className="space-y-1">
-                <Label className="text-xs text-slate-500">Step yang mengisi tanggal terima berkas</Label>
+                <Label className="text-xs text-slate-700">Step yang mengisi tanggal terima berkas</Label>
                 <Select
                   value={receivedDateConfig.lsStepNumber !== null ? String(receivedDateConfig.lsStepNumber) : '__none__'}
                   onValueChange={(v) => {
@@ -589,7 +589,7 @@ export default function AdvancedSettingsPage() {
                 </Select>
               </div>
               {receivedDateConfig.lsStepNumber !== null && (
-                <p className="text-xs text-blue-700 mt-1">
+                <p className="text-xs text-blue-800 mt-1">
                   Field tanggal muncul di <strong>Step {receivedDateConfig.lsStepNumber}</strong> untuk tiket LS
                 </p>
               )}
@@ -602,7 +602,7 @@ export default function AdvancedSettingsPage() {
                 <Badge className="bg-orange-100 text-orange-700 border-orange-200" variant="outline">Non-LS</Badge>
               </div>
               <div className="space-y-1">
-                <Label className="text-xs text-slate-500">Step yang mengisi tanggal terima berkas</Label>
+                <Label className="text-xs text-slate-700">Step yang mengisi tanggal terima berkas</Label>
                 <Select
                   value={receivedDateConfig.nonLsStepNumber !== null ? String(receivedDateConfig.nonLsStepNumber) : '__none__'}
                   onValueChange={(v) => {
@@ -633,13 +633,13 @@ export default function AdvancedSettingsPage() {
           </div>
 
           {receivedDateLoading && (
-            <div className="flex items-center gap-2 text-slate-500 text-sm">
+            <div className="flex items-center gap-2 text-slate-700 text-sm">
               <Loader2 className="w-4 h-4 animate-spin" />
               Menyimpan...
             </div>
           )}
           {receivedDateSaved && (
-            <div className="flex items-center gap-1 text-green-600 text-sm">
+            <div className="flex items-center gap-1 text-green-800 text-sm">
               <CheckCircle2 className="w-4 h-4" />
               Tersimpan!
             </div>
@@ -653,9 +653,9 @@ export default function AdvancedSettingsPage() {
           <CardTitle>Konfigurasi Akses Download File</CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-700">
             Centang step mana saja yang diizinkan melihat dan mendownload file dari step-step sebelumnya saat memproses tiket.
-            Konfigurasi terpisah untuk tiket <span className="font-semibold text-blue-600">LS</span> dan <span className="font-semibold text-orange-600">Non-LS</span>.
+            Konfigurasi terpisah untuk tiket <span className="font-semibold text-blue-800">LS</span> dan <span className="font-semibold text-orange-800">Non-LS</span>.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -663,10 +663,10 @@ export default function AdvancedSettingsPage() {
             <div className="border rounded-lg p-4 bg-blue-50 border-blue-200 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-blue-800">Tiket LS</span>
-                <Badge className="bg-blue-100 text-blue-700 border-blue-200" variant="outline">LS</Badge>
+                <Badge className="bg-blue-100 text-blue-800 border-blue-200" variant="outline">LS</Badge>
               </div>
               {steps.filter(s => !s.isNonLsOnly).length === 0 ? (
-                <p className="text-xs text-slate-400 italic">Belum ada step LS</p>
+                <p className="text-xs text-slate-700 italic">Belum ada step LS</p>
               ) : (
                 <div className="space-y-2">
                   {steps.filter(s => !s.isNonLsOnly).map(s => (
@@ -678,8 +678,8 @@ export default function AdvancedSettingsPage() {
                         disabled={downloadConfigLoading}
                         className="w-4 h-4 accent-blue-600"
                       />
-                      <span className="text-sm text-slate-700 group-hover:text-blue-700">
-                        <span className="font-mono text-xs bg-blue-100 text-blue-700 rounded px-1 mr-1">
+                      <span className="text-sm text-slate-700 group-hover:text-blue-900">
+                        <span className="font-mono text-xs bg-blue-100 text-blue-800 rounded px-1 mr-1">
                           {s.stepNumber}
                         </span>
                         {s.stepName}
@@ -697,7 +697,7 @@ export default function AdvancedSettingsPage() {
                 <Badge className="bg-orange-100 text-orange-700 border-orange-200" variant="outline">Non-LS</Badge>
               </div>
               {steps.filter(s => !s.isLsOnly).length === 0 ? (
-                <p className="text-xs text-slate-400 italic">Belum ada step Non-LS</p>
+                <p className="text-xs text-slate-700 italic">Belum ada step Non-LS</p>
               ) : (
                 <div className="space-y-2">
                   {steps.filter(s => !s.isLsOnly).map(s => (
@@ -723,13 +723,13 @@ export default function AdvancedSettingsPage() {
           </div>
 
           {downloadConfigLoading && (
-            <div className="flex items-center gap-2 text-slate-500 text-sm">
+            <div className="flex items-center gap-2 text-slate-700 text-sm">
               <Loader2 className="w-4 h-4 animate-spin" />
               Menyimpan...
             </div>
           )}
           {downloadConfigSaved && (
-            <div className="flex items-center gap-1 text-green-600 text-sm">
+            <div className="flex items-center gap-1 text-green-800 text-sm">
               <CheckCircle2 className="w-4 h-4" />
               Tersimpan!
             </div>
@@ -743,7 +743,7 @@ export default function AdvancedSettingsPage() {
           <CardTitle>Ukuran Maksimal File Upload</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-700">
             Atur batas ukuran maksimal file yang dapat diunggah oleh pengguna saat memproses tiket.
           </p>
           <div className="flex items-end gap-3 max-w-xs">
@@ -759,9 +759,9 @@ export default function AdvancedSettingsPage() {
                   placeholder="10"
                   className="w-28"
                 />
-                <span className="text-sm text-slate-500">MB</span>
+                <span className="text-sm text-slate-700">MB</span>
               </div>
-              <p className="text-xs text-slate-400">Default: 10 MB. Maks yang disarankan: 50 MB.</p>
+              <p className="text-xs text-slate-700">Default: 10 MB. Maks yang disarankan: 50 MB.</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -774,7 +774,7 @@ export default function AdvancedSettingsPage() {
               {fileSizeLoading ? 'Menyimpan...' : 'Simpan'}
             </Button>
             {fileSizeSaved && (
-              <span className="flex items-center gap-1 text-green-600 text-sm">
+              <span className="flex items-center gap-1 text-green-800 text-sm">
                 <CheckCircle2 className="w-4 h-4" /> Tersimpan!
               </span>
             )}
@@ -786,12 +786,12 @@ export default function AdvancedSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Tags className="w-5 h-5 text-slate-500" />
+            <Tags className="w-5 h-5 text-slate-700" />
             Penggantian Nama Role
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-5">
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-700">
             Ubah nama tampilan dari setiap <strong>role pegawai</strong> yang muncul di seluruh aplikasi.
             Kosongkan kolom untuk menggunakan nama default.
           </p>
@@ -803,8 +803,8 @@ export default function AdvancedSettingsPage() {
               return (
                 <div key={key} className="flex items-center gap-2">
                   <div className="flex-1 space-y-1">
-                    <Label className="text-xs text-slate-500 flex items-center gap-1">
-                      <span className="font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded text-[10px]">{key}</span>
+                    <Label className="text-xs text-slate-700 flex items-center gap-1">
+                      <span className="font-mono bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px]">{key}</span>
                       <span>{defaultLabel}</span>
                       {isModified && (
                         <Badge className="ml-1 text-[10px] py-0 px-1.5 bg-amber-100 text-amber-700 border-amber-200" variant="outline">
@@ -829,7 +829,7 @@ export default function AdvancedSettingsPage() {
                       type="button"
                       title="Reset ke default"
                       onClick={() => handleResetRoleLabel(key)}
-                      className="mt-5 text-slate-400 hover:text-red-500 transition-colors"
+                      className="mt-5 text-slate-700 hover:text-red-800 transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -849,7 +849,7 @@ export default function AdvancedSettingsPage() {
               {roleLabelsLoading ? 'Menyimpan...' : 'Simpan Perubahan Nama'}
             </Button>
             {roleLabelsSaved && (
-              <span className="flex items-center gap-1 text-green-600 text-sm">
+              <span className="flex items-center gap-1 text-green-800 text-sm">
                 <CheckCircle2 className="w-4 h-4" /> Tersimpan!
               </span>
             )}
@@ -857,7 +857,7 @@ export default function AdvancedSettingsPage() {
 
           {Object.keys(roleLabels).length > 0 && (
             <div className="bg-slate-50 border rounded-lg px-4 py-3 space-y-1">
-              <p className="text-xs font-semibold text-slate-600 mb-2">Nama yang sedang aktif:</p>
+              <p className="text-xs font-semibold text-slate-700 mb-2">Nama yang sedang aktif:</p>
               <div className="flex flex-wrap gap-2">
                 {Object.entries(EMPLOYEE_ROLES).map(([key, defaultLabel]) => {
                   const active = roleLabels[key] || defaultLabel;
@@ -868,7 +868,7 @@ export default function AdvancedSettingsPage() {
                       className={`text-xs px-2 py-1 rounded border font-mono ${
                         isCustom
                           ? 'bg-amber-50 border-amber-200 text-amber-800'
-                          : 'bg-white border-slate-200 text-slate-600'
+                          : 'bg-white border-slate-200 text-slate-700'
                       }`}
                     >
                       {key}: <span className="font-sans font-medium">{active}</span>

@@ -51,7 +51,7 @@ router.get('/', authenticate, async (req: AuthRequest, res: Response) => {
         assignedPpdUser1: { select: { id: true, name: true } },
         assignedPpdUser2: { select: { id: true, name: true } },
         histories: {
-          include: { processedBy: { select: { id: true, name: true } } },
+          where: { voidedAt: null }, include: { processedBy: { select: { id: true, name: true } } },
           orderBy: { stepNumber: 'asc' },
         },
       },
@@ -90,7 +90,7 @@ router.get('/my-tasks', authenticate, async (req: AuthRequest, res: Response) =>
         assignedPpdUser1: { select: { id: true, name: true } },
         assignedPpdUser2: { select: { id: true, name: true } },
         histories: {
-          include: { processedBy: { select: { id: true, name: true } } },
+          where: { voidedAt: null }, include: { processedBy: { select: { id: true, name: true } } },
           orderBy: { stepNumber: 'asc' },
         },
       },
@@ -161,7 +161,8 @@ router.get('/my-history', authenticate, async (req: AuthRequest, res: Response) 
       where: {
         histories: {
           some: {
-            processedById: req.user.id
+            processedById: req.user.id,
+            voidedAt: null,
           }
         }
       },
@@ -170,7 +171,7 @@ router.get('/my-history', authenticate, async (req: AuthRequest, res: Response) 
         assignedPpdUser1: { select: { id: true, name: true } },
         assignedPpdUser2: { select: { id: true, name: true } },
         histories: {
-          include: { processedBy: { select: { id: true, name: true } } },
+          where: { voidedAt: null }, include: { processedBy: { select: { id: true, name: true } } },
           orderBy: { stepNumber: 'asc' },
         },
       },
@@ -195,7 +196,7 @@ router.get('/:id', authenticate, async (req: AuthRequest, res: Response) => {
         assignedPpdUser1: { select: { id: true, name: true } },
         assignedPpdUser2: { select: { id: true, name: true } },
         histories: {
-          include: { processedBy: { select: { id: true, name: true } } },
+          where: { voidedAt: null }, include: { processedBy: { select: { id: true, name: true } } },
           orderBy: { stepNumber: 'asc' },
         },
       },
@@ -321,7 +322,7 @@ router.post('/:id/process', authenticate, upload.single('file'), async (req: Aut
     
     const ticket = await prisma.ticket.findUnique({
       where: { id: req.params.id },
-      include: { histories: true },
+      include: { histories: { where: { voidedAt: null } } },
     });
 
     if (!ticket) {
@@ -369,22 +370,25 @@ router.post('/:id/process', authenticate, upload.single('file'), async (req: Aut
       parallelStepNumbers = await getParallelSteps(stepConfig.parallelGroup);
     }
 
-    // Delete any return notes for this step before processing
-    const deletedCount = await prisma.ticketHistory.deleteMany({
+    // Void any return notes for this step before processing (kept for duration statistics)
+    const voidedCount = await prisma.ticketHistory.updateMany({
       where: {
         ticketId: ticket.id,
         stepNumber: stepToProcess,
         processorName: { contains: '[DIKEMBALIKAN]' },
+        voidedAt: null,
       },
+      data: { voidedAt: new Date() },
     });
-    console.log('Deleted return notes:', deletedCount.count);
+    console.log('Voided return notes:', voidedCount.count);
 
-    // Re-check if step was already processed after deleting return notes
+    // Re-check if step was already processed after voiding return notes
     const actualHistory = await prisma.ticketHistory.findFirst({
       where: {
         ticketId: ticket.id,
         stepNumber: stepToProcess,
         processorName: { not: { contains: '[DIKEMBALIKAN]' } },
+        voidedAt: null,
       },
     });
     
@@ -431,9 +435,10 @@ router.post('/:id/process', authenticate, upload.single('file'), async (req: Aut
           ticketId: ticket.id,
           stepNumber: { in: parallelStepNumbers },
           processorName: { not: { contains: '[DIKEMBALIKAN]' } },
+          voidedAt: null,
         },
       });
-      
+
       console.log('Completed parallel steps:', completedParallelSteps, '/', parallelStepNumbers.length);
 
       // If all parallel steps are done, move to next non-parallel step
@@ -473,7 +478,7 @@ router.post('/:id/process', authenticate, upload.single('file'), async (req: Aut
       include: {
         createdBy: { select: { id: true, name: true } },
         histories: {
-          include: { processedBy: { select: { id: true, name: true } } },
+          where: { voidedAt: null }, include: { processedBy: { select: { id: true, name: true } } },
           orderBy: { stepNumber: 'asc' },
         },
       },
@@ -492,7 +497,7 @@ router.post('/:id/process', authenticate, upload.single('file'), async (req: Aut
 router.get('/:id/files', authenticate, async (req: AuthRequest, res: Response) => {
   try {
     const histories = await prisma.ticketHistory.findMany({
-      where: { ticketId: req.params.id },
+      where: { ticketId: req.params.id, voidedAt: null },
       select: {
         id: true,
         stepNumber: true,
@@ -571,7 +576,7 @@ router.patch('/:id', authenticate, requireRole('admin'), async (req: AuthRequest
         assignedPpdUser1: { select: { id: true, name: true } },
         assignedPpdUser2: { select: { id: true, name: true } },
         histories: {
-          include: { processedBy: { select: { id: true, name: true } } },
+          where: { voidedAt: null }, include: { processedBy: { select: { id: true, name: true } } },
           orderBy: { stepNumber: 'asc' },
         },
       },
@@ -611,7 +616,7 @@ router.post('/:id/admin-skip', authenticate, requireRole('admin'), async (req: A
   try {
     const ticket = await prisma.ticket.findUnique({
       where: { id: req.params.id },
-      include: { histories: true },
+      include: { histories: { where: { voidedAt: null } } },
     });
 
     if (!ticket) {
@@ -625,21 +630,24 @@ router.post('/:id/admin-skip', authenticate, requireRole('admin'), async (req: A
     const { stepNumber } = req.body;
     const stepToProcess = stepNumber ? parseInt(stepNumber) : ticket.currentStep;
 
-    // Delete any return notes for this step first
-    await prisma.ticketHistory.deleteMany({
+    // Void any return notes for this step first (kept for duration statistics)
+    await prisma.ticketHistory.updateMany({
       where: {
         ticketId: ticket.id,
         stepNumber: stepToProcess,
         processorName: { contains: '[DIKEMBALIKAN]' },
+        voidedAt: null,
       },
+      data: { voidedAt: new Date() },
     });
 
-    // Check if step already processed (after deleting return notes)
+    // Check if step already processed (after voiding return notes)
     const existingHistory = await prisma.ticketHistory.findFirst({
       where: {
         ticketId: ticket.id,
         stepNumber: stepToProcess,
         processorName: { not: { contains: '[DIKEMBALIKAN]' } },
+        voidedAt: null,
       },
     });
     
@@ -687,6 +695,7 @@ router.post('/:id/admin-skip', authenticate, requireRole('admin'), async (req: A
           ticketId: ticket.id,
           stepNumber: { in: parallelStepNumbers },
           processorName: { not: { contains: '[DIKEMBALIKAN]' } }, // Exclude return notes
+          voidedAt: null,
         },
       });
 
@@ -717,7 +726,7 @@ router.post('/:id/admin-skip', authenticate, requireRole('admin'), async (req: A
       include: {
         createdBy: { select: { id: true, name: true } },
         histories: {
-          include: { processedBy: { select: { id: true, name: true } } },
+          where: { voidedAt: null }, include: { processedBy: { select: { id: true, name: true } } },
           orderBy: { stepNumber: 'asc' },
         },
       },
@@ -738,8 +747,9 @@ router.post('/:id/return-to-previous', authenticate, async (req: AuthRequest, re
     
     const ticket = await prisma.ticket.findUnique({
       where: { id: req.params.id },
-      include: { 
+      include: {
         histories: {
+          where: { voidedAt: null },
           orderBy: { stepNumber: 'desc' },
         },
       },
@@ -774,23 +784,29 @@ router.post('/:id/return-to-previous', authenticate, async (req: AuthRequest, re
 
     console.log('Will return from step', ticket.currentStep, 'to step', previousStep);
 
-    // Delete history from current step AND previous step (both need to be redone)
-    const deletedCurrent = await prisma.ticketHistory.deleteMany({
+    // Void history from current step AND previous step (both need to be redone).
+    // Rows are kept, not deleted, so the original work time still counts in duration statistics.
+    const voidedAt = new Date();
+    const voidedCurrent = await prisma.ticketHistory.updateMany({
       where: {
         ticketId: ticket.id,
         stepNumber: ticket.currentStep,
+        voidedAt: null,
       },
+      data: { voidedAt },
     });
-    console.log('Deleted histories from current step', ticket.currentStep, ':', deletedCurrent.count);
+    console.log('Voided histories from current step', ticket.currentStep, ':', voidedCurrent.count);
 
-    const deletedPrevious = await prisma.ticketHistory.deleteMany({
+    const voidedPrevious = await prisma.ticketHistory.updateMany({
       where: {
         ticketId: ticket.id,
         stepNumber: previousStep,
         processorName: { not: { contains: '[DIKEMBALIKAN]' } }, // Keep old return notes for reference
+        voidedAt: null,
       },
+      data: { voidedAt },
     });
-    console.log('Deleted histories from previous step', previousStep, ':', deletedPrevious.count);
+    console.log('Voided histories from previous step', previousStep, ':', voidedPrevious.count);
 
     // Create return history entry with note at the previous step
     // This will be visible to the person who will redo the previous step
@@ -820,7 +836,7 @@ router.post('/:id/return-to-previous', authenticate, async (req: AuthRequest, re
         assignedPpdUser1: { select: { id: true, name: true } },
         assignedPpdUser2: { select: { id: true, name: true } },
         histories: {
-          include: { processedBy: { select: { id: true, name: true } } },
+          where: { voidedAt: null }, include: { processedBy: { select: { id: true, name: true } } },
           orderBy: { stepNumber: 'asc' },
         },
       },

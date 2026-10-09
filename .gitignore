@@ -37,3 +37,5 @@ frontend/out/
 # Prisma
 backend/prisma/migrations/
 !backend/prisma/migrations/.gitkeep
+# antislop audit reports (local only)
+anti-slop/

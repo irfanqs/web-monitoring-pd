@@ -87,6 +87,7 @@ model TicketHistory {
   fileName      String?  @map("file_name")
   notes         String?
   processedAt   DateTime @map("processed_at")
+  voidedAt      DateTime? @map("voided_at") // Set when the step is returned/redone; kept for duration statistics
   createdAt     DateTime @default(now()) @map("created_at")
 
   ticket      Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)

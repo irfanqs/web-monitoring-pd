@@ -62,6 +62,16 @@ export function ProgressIndicator({
   const getStepHistory = (step: number) =>
     histories.find((h) => h.stepNumber === step);
 
+  // Processed steps show who actually did it; other steps show everyone holding the role
+  const getPicLabel = (step: number, skipped: boolean, roleCode?: string) => {
+    if (skipped) return '-';
+    const processed = histories.find((h) => h.stepNumber === step && !h.processorName.includes('[DIKEMBALIKAN]'));
+    if (processed) return processed.processorName;
+    return getStepPicName ? getStepPicName(step, roleCode) : '-';
+  };
+
+  const currentStepClass = isLs ? 'bg-blue-700 text-white' : 'bg-orange-700 text-white';
+
   const getStepConfig = (step: number) =>
     stepConfigs.find((s) => s.stepNumber === step);
 
@@ -128,9 +138,9 @@ export function ProgressIndicator({
         <div className="flex items-center gap-2">
           <span className={cn(
             "text-xs font-semibold px-2 py-0.5 rounded",
-            isLs 
-              ? "bg-blue-100 text-blue-700 border border-blue-300" 
-              : "bg-purple-100 text-purple-700 border border-purple-300"
+            isLs
+              ? "bg-blue-50 text-blue-900 border border-blue-300"
+              : "bg-orange-50 text-orange-900 border border-orange-300"
           )}>
             {isLs ? 'LS' : 'Non-LS'} - {totalApplicableSteps} Steps
           </span>
@@ -138,16 +148,11 @@ export function ProgressIndicator({
         
         <div className="flex items-start gap-0.5 overflow-x-auto">
           {Array.from({ length: maxStepNumber }, (_, i) => i + 1).map((step) => {
-            const history = getStepHistory(step);
             const skipped = isStepSkipped(step);
             const completed = isStepCompleted(step);
             const isCurrent = isCurrentStep(step);
             const config = getStepConfig(step);
-            const picLabel = skipped
-              ? '-'
-              : getStepPicName
-              ? getStepPicName(step, config?.requiredEmployeeRole)
-              : history?.processorName || '-';
+            const picLabel = getPicLabel(step, skipped, config?.requiredEmployeeRole);
 
             return (
               <div key={step} className="w-[56px] flex flex-col items-center text-center">
@@ -155,14 +160,12 @@ export function ProgressIndicator({
                   className={cn(
                     'w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium relative',
                     skipped
-                      ? 'bg-gray-100 text-gray-400 opacity-30'
+                      ? 'bg-slate-100 text-slate-500'
                       : completed
-                      ? 'bg-green-500 text-white'
+                      ? 'bg-green-700 text-white'
                       : isCurrent
-                      ? isLs
-                        ? 'bg-blue-600 text-white ring-2 ring-blue-300'
-                        : 'bg-purple-600 text-white ring-2 ring-purple-300'
-                      : 'bg-gray-200 text-gray-500',
+                      ? cn(currentStepClass, isLs ? 'ring-2 ring-blue-300' : 'ring-2 ring-orange-300')
+                      : 'bg-slate-200 text-slate-800',
                     config?.isParallel && 'rounded-sm' // Square for parallel steps
                   )}
                   title={skipped ? 'Tidak berlaku' : config?.stepName}
@@ -175,7 +178,7 @@ export function ProgressIndicator({
                 <p
                   className={cn(
                     'mt-1 text-[8px] leading-tight line-clamp-2 min-h-[18px]',
-                    skipped ? 'text-gray-300' : 'text-slate-600'
+                    skipped ? 'text-slate-500' : 'text-slate-900'
                   )}
                   title={picLabel}
                 >
@@ -187,7 +190,7 @@ export function ProgressIndicator({
           {currentStep > maxStepNumber && (
             <div className={cn(
               "w-6 h-6 rounded-full flex items-center justify-center",
-              "bg-green-500 text-white"
+              "bg-green-700 text-white"
             )}>
               <Check className="w-3 h-3" />
             </div>
@@ -207,14 +210,14 @@ export function ProgressIndicator({
         <div className={cn(
           "inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold",
           isLs 
-            ? "bg-blue-50 text-blue-700 border-2 border-blue-200" 
-            : "bg-purple-50 text-purple-700 border-2 border-purple-200"
+            ? "bg-blue-50 text-blue-900 border-2 border-blue-200"
+            : "bg-orange-50 text-orange-900 border-2 border-orange-200"
         )}>
           <span>{isLs ? 'Langsung (LS)' : 'Non-LS'}</span>
-          <span className="text-xs opacity-70">• {totalApplicableSteps} steps</span>
+          <span className="text-xs">• {totalApplicableSteps} steps</span>
         </div>
         {parallelInfo && (
-          <div className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-200">
+          <div className="text-xs text-amber-900 bg-amber-50 px-2 py-1 rounded border border-amber-200">
             Paralel: {parallelInfo.completedCount}/{parallelInfo.total}
           </div>
         )}
@@ -227,11 +230,7 @@ export function ProgressIndicator({
           const skipped = isStepSkipped(step);
           const completed = isStepCompleted(step);
           const isCurrent = isCurrentStep(step);
-          const picLabel = skipped
-            ? '-'
-            : getStepPicName
-            ? getStepPicName(step, config?.requiredEmployeeRole)
-            : history?.processorName || '-';
+          const picLabel = getPicLabel(step, skipped, config?.requiredEmployeeRole);
 
           return (
             <div key={step} className="flex items-start">
@@ -240,14 +239,12 @@ export function ProgressIndicator({
                   className={cn(
                     'w-10 h-10 flex items-center justify-center text-sm font-medium relative group z-0',
                     skipped
-                      ? 'bg-gray-100 text-gray-400 opacity-40 rounded-full'
+                      ? 'bg-slate-100 text-slate-500 rounded-full'
                       : completed
-                      ? 'bg-green-500 text-white rounded-full'
+                      ? 'bg-green-700 text-white rounded-full'
                       : isCurrent
-                      ? isLs
-                        ? 'bg-blue-600 text-white ring-4 ring-blue-200 rounded-full shadow-lg'
-                        : 'bg-purple-600 text-white ring-4 ring-purple-200 rounded-full shadow-lg'
-                      : 'bg-gray-200 text-gray-600 rounded-full',
+                      ? cn(currentStepClass, isLs ? 'ring-4 ring-blue-200' : 'ring-4 ring-orange-200', 'rounded-full shadow-lg')
+                      : 'bg-slate-200 text-slate-800 rounded-full',
                     config?.isParallel && !skipped && 'rounded-lg' // Rounded square for parallel
                   )}
                 >
@@ -283,8 +280,8 @@ export function ProgressIndicator({
                 <p
                   className={cn(
                     'mt-2 text-[9px] leading-tight px-1 min-h-[24px] line-clamp-2',
-                    skipped ? 'text-gray-400' : 'text-slate-600',
-                    isCurrent && !skipped && 'font-semibold text-slate-800'
+                    skipped ? 'text-slate-500' : 'text-slate-900',
+                    isCurrent && !skipped && 'font-semibold'
                   )}
                   title={picLabel}
                 >
@@ -296,10 +293,10 @@ export function ProgressIndicator({
                   className={cn(
                     'w-2 h-1 mt-[18px]',
                     skipped || isStepSkipped(step + 1)
-                      ? 'bg-gray-100'
+                      ? 'bg-slate-100'
                       : completed
-                      ? 'bg-green-500'
-                      : 'bg-gray-200'
+                      ? 'bg-green-700'
+                      : 'bg-slate-200'
                   )}
                 />
               )}
@@ -307,7 +304,7 @@ export function ProgressIndicator({
           );
         })}
       </div>
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-slate-800">
         {currentStep > maxStepNumber 
           ? 'Selesai' 
           : parallelInfo

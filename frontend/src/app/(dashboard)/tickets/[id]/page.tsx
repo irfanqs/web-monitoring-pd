@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { ProgressIndicator } from '@/components/ProgressIndicator';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { EMPLOYEE_ROLES } from '@/lib/constants';
+import { usePicNames } from '@/lib/usePicNames';
 import { ArrowLeft, Download, Pencil, SkipForward } from 'lucide-react';
 
 interface StepConfig {
@@ -58,7 +59,7 @@ export default function TicketDetailPage() {
   const router = useRouter();
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [stepConfigs, setStepConfigs] = useState<StepConfig[]>([]);
-  const [users, setUsers] = useState<Array<{ id: string; name: string; employeeRole: string | null }>>([]);
+  const { picUsers: users, getPicNames: getTicketPicNames } = usePicNames();
   const [skipping, setSkipping] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
@@ -81,31 +82,15 @@ export default function TicketDetailPage() {
     api.get('/steps').then((res) => setStepConfigs(res.data));
   };
 
-  const fetchUsers = () => {
-    api.get('/users').then((res) => setUsers(res.data));
-  };
-
   useEffect(() => {
     fetchTicket();
     fetchStepConfigs();
-    fetchUsers();
   }, [params.id]);
 
   // Helper functions
   const getStepConfig = (stepNumber: number) => stepConfigs.find(s => s.stepNumber === stepNumber);
-  
-  const getPicNames = (employeeRole: string, stepNumber?: number) => {
-    // For PPD role, if assigned to specific users, show only those assigned users
-    if (employeeRole === 'PPD' && (ticket?.assignedPpdUser1 || ticket?.assignedPpdUser2)) {
-      const names = [];
-      if (ticket.assignedPpdUser1) names.push(ticket.assignedPpdUser1.name);
-      if (ticket.assignedPpdUser2) names.push(ticket.assignedPpdUser2.name);
-      return names.join(' / ');
-    }
-    
-    const usersWithRole = users.filter(u => u.employeeRole === employeeRole);
-    return usersWithRole.length > 0 ? usersWithRole.map(u => u.name).join(' / ') : '-';
-  };
+
+  const getPicNames = (employeeRole: string, stepNumber?: number) => getTicketPicNames(ticket, employeeRole);
 
   const getMaxStep = () => {
     return stepConfigs.length > 0 ? Math.max(...stepConfigs.map(s => s.stepNumber)) : 15;
@@ -205,12 +190,12 @@ export default function TicketDetailPage() {
           </Button>
           <div>
             <h1 className="text-2xl font-bold break-words line-clamp-4" title={ticket.activityName}>{ticket.activityName.replace(/\s+/g, ' ').trim()}</h1>
-            <p className="text-slate-500">{ticket.assignmentLetterNumber}</p>
+            <p className="text-slate-700">{ticket.assignmentLetterNumber}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {user?.systemRole === 'admin' && (
-            <Button size="sm" variant="outline" onClick={handleOpenEdit} className="text-blue-600 border-blue-300 hover:bg-blue-50">
+            <Button size="sm" variant="outline" onClick={handleOpenEdit} className="text-blue-800 border-blue-300 hover:bg-blue-50">
               <Pencil className="w-4 h-4 mr-1" />
               Edit
             </Button>
@@ -218,10 +203,10 @@ export default function TicketDetailPage() {
           <Badge
             className={
               ticket.status === 'completed'
-                ? 'bg-green-500 hover:bg-green-600 text-white text-lg px-4 py-1'
+                ? 'bg-green-700 hover:bg-green-800 text-white text-lg px-4 py-1'
                 : ticket.status === 'in_progress'
-                ? 'bg-blue-500 hover:bg-blue-600 text-white text-lg px-4 py-1'
-                : 'bg-yellow-300 hover:bg-yellow-400 text-slate-900 text-lg px-4 py-1'
+                ? 'bg-blue-700 hover:bg-blue-800 text-white text-lg px-4 py-1'
+                : 'bg-amber-300 hover:bg-amber-400 text-slate-900 text-lg px-4 py-1'
             }
           >
             {ticket.status === 'completed'
@@ -268,7 +253,7 @@ export default function TicketDetailPage() {
                   // Parallel steps view
                   return (
                     <div>
-                      <p className="text-sm text-slate-500 mb-2">
+                      <p className="text-sm text-slate-700 mb-2">
                         Step {parallelSteps.map(s => s.stepNumber).join(', ')} (Paralel) - {ticket.isLs ? 'LS' : 'Non-LS'}
                       </p>
                       <div className="space-y-2">
@@ -280,10 +265,10 @@ export default function TicketDetailPage() {
                               <div className="flex items-center justify-between">
                                 <div>
                                   <p className="font-medium">{EMPLOYEE_ROLES[step.requiredEmployeeRole] || step.stepName}</p>
-                                  <p className="text-sm text-slate-500">PIC: {picNames}</p>
+                                  <p className="text-sm text-slate-700">PIC: {picNames}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <Badge className={isCompleted ? 'bg-green-500' : 'bg-yellow-300 text-slate-900'}>
+                                  <Badge className={isCompleted ? 'bg-green-700' : 'bg-amber-300 text-slate-900'}>
                                     {isCompleted ? 'Selesai' : 'Pending'}
                                   </Badge>
                                   {user?.systemRole === 'admin' && !isCompleted && (
@@ -292,7 +277,7 @@ export default function TicketDetailPage() {
                                       variant="outline"
                                       onClick={() => handleAdminSkip(step.stepNumber)}
                                       disabled={skipping}
-                                      className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                                      className="text-orange-800 border-orange-300 hover:bg-orange-50"
                                     >
                                       <SkipForward className="w-4 h-4 mr-1" />
                                       Skip
@@ -300,7 +285,7 @@ export default function TicketDetailPage() {
                                   )}
                                 </div>
                               </div>
-                              <p className="text-sm text-slate-600 mt-1">{step.description}</p>
+                              <p className="text-sm text-slate-700 mt-1">{step.description}</p>
                             </div>
                           );
                         })}
@@ -314,18 +299,18 @@ export default function TicketDetailPage() {
                     <div>
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm text-slate-500">Step {ticket.currentStep} dari {getTotalSteps()}</p>
+                          <p className="text-sm text-slate-700">Step {ticket.currentStep} dari {getTotalSteps()}</p>
                           <p className="font-medium text-lg">
                             {currentConfig ? (EMPLOYEE_ROLES[currentConfig.requiredEmployeeRole] || currentConfig.stepName) : ''}
                           </p>
-                          <p className="text-sm text-slate-500">PIC: {picNames}</p>
+                          <p className="text-sm text-slate-700">PIC: {picNames}</p>
                         </div>
                         {user?.systemRole === 'admin' && (
                           <Button
                             variant="outline"
                             onClick={() => handleAdminSkip()}
                             disabled={skipping}
-                            className="text-orange-600 border-orange-300 hover:bg-orange-50"
+                            className="text-orange-800 border-orange-300 hover:bg-orange-50"
                           >
                             <SkipForward className="w-4 h-4 mr-2" />
                             {skipping ? 'Skipping...' : 'Skip Step (Debug)'}
@@ -353,26 +338,26 @@ export default function TicketDetailPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="text-sm text-slate-500">Nomor Surat Tugas</p>
+              <p className="text-sm text-slate-700">Nomor Surat Tugas</p>
               <p className="font-medium">{ticket.assignmentLetterNumber}</p>
             </div>
             {ticket.uraian && (
               <div>
-                <p className="text-sm text-slate-500">Uraian</p>
+                <p className="text-sm text-slate-700">Uraian</p>
                 <p className="font-medium">{ticket.uraian}</p>
               </div>
             )}
             <div>
-              <p className="text-sm text-slate-500">Tipe</p>
-              <Badge variant={ticket.isLs ? 'default' : 'secondary'}>
+              <p className="text-sm text-slate-700">Tipe</p>
+              <Badge className={ticket.isLs ? 'bg-blue-700 text-white' : 'bg-orange-700 text-white'}>
                 {ticket.isLs ? 'LS (Langsung - Bendahara)' : 'Non-LS'}
               </Badge>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-slate-700 mt-1">
                 Total {getTotalSteps()} step
               </p>
             </div>
             <div>
-              <p className="text-sm text-slate-500">Tanggal Penerimaan Berkas</p>
+              <p className="text-sm text-slate-700">Tanggal Penerimaan Berkas</p>
               {ticket.receivedDate ? (
                 <p className="font-medium">
                   {new Date(ticket.receivedDate).toLocaleDateString('id-ID', {
@@ -387,15 +372,15 @@ export default function TicketDetailPage() {
                   })}
                 </p>
               ) : (
-                <p className="text-slate-400 italic text-sm">Belum diisi oleh verifikator</p>
+                <p className="text-slate-700 italic text-sm">Belum diisi oleh verifikator</p>
               )}
             </div>
             <div>
-              <p className="text-sm text-slate-500">Dibuat Oleh</p>
+              <p className="text-sm text-slate-700">Dibuat Oleh</p>
               <p className="font-medium">{ticket.createdBy.name}</p>
             </div>
             <div>
-              <p className="text-sm text-slate-500">Tanggal Dibuat</p>
+              <p className="text-sm text-slate-700">Tanggal Dibuat</p>
               <p className="font-medium">
                 {new Date(ticket.createdAt).toLocaleString('id-ID')}
               </p>
@@ -410,7 +395,7 @@ export default function TicketDetailPage() {
           <CardContent>
             <div className="space-y-4">
               {ticket.histories.length === 0 ? (
-                <p className="text-slate-500">Belum ada riwayat</p>
+                <p className="text-slate-700">Belum ada riwayat</p>
               ) : (
                 ticket.histories.map((history) => {
                   const stepConfig = getStepConfig(history.stepNumber);
@@ -423,18 +408,18 @@ export default function TicketDetailPage() {
                     >
                       <div className="flex items-center justify-between">
                         <Badge>Step {history.stepNumber}</Badge>
-                        <span className="text-sm text-slate-500">
+                        <span className="text-sm text-slate-700">
                           {new Date(history.processedAt).toLocaleString('id-ID')}
                         </span>
                       </div>
                       <p className="font-medium">
                         {stepConfig ? (EMPLOYEE_ROLES[stepConfig.requiredEmployeeRole] || stepConfig.stepName) : `Step ${history.stepNumber}`}
                       </p>
-                      <p className="text-sm text-slate-600">
+                      <p className="text-sm text-slate-700">
                         Diproses oleh: {history.processorName}
                       </p>
                       {history.notes && (
-                        <div className="text-sm text-slate-500">
+                        <div className="text-sm text-slate-700">
                           <span className="font-medium">Catatan:</span>
                           <p className="whitespace-pre-wrap mt-1 leading-relaxed">{history.notes}</p>
                         </div>
